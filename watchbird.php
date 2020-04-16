@@ -3,6 +3,17 @@
 
 A Simple PHP WAF for AWD
 
+
+ /$$      /$$  /$$$$$$  /$$$$$$$$ /$$$$$$  /$$   /$$ /$$$$$$$  /$$$$$$ /$$$$$$$  /$$$$$$$ 
+| $$  /$ | $$ /$$__  $$|__  $$__//$$__  $$| $$  | $$| $$__  $$|_  $$_/| $$__  $$| $$__  $$
+| $$ /$$$| $$| $$  \ $$   | $$  | $$  \__/| $$  | $$| $$  \ $$  | $$  | $$  \ $$| $$  \ $$
+| $$/$$ $$ $$| $$$$$$$$   | $$  | $$      | $$$$$$$$| $$$$$$$   | $$  | $$$$$$$/| $$  | $$
+| $$$$_  $$$$| $$__  $$   | $$  | $$      | $$__  $$| $$__  $$  | $$  | $$__  $$| $$  | $$
+| $$$/ \  $$$| $$  | $$   | $$  | $$    $$| $$  | $$| $$  \ $$  | $$  | $$  \ $$| $$  | $$
+| $$/   \  $$| $$  | $$   | $$  |  $$$$$$/| $$  | $$| $$$$$$$/ /$$$$$$| $$  | $$| $$$$$$$/
+|__/     \__/|__/  |__/   |__/   \______/ |__/  |__/|_______/ |______/|__/  |__/|_______/                                                         
+                                                                                    
+
 Credits:
 	[AWD_PHP watchbird] (Original WAF Framework)
 	[Longlone](https://github.com/WAY29) (Configuring keyword and upload protection, Global optimization)
@@ -258,6 +269,22 @@ function deldir($dir) {
 	}
 }
 
+
+/*
+die并且输出logo
+*/
+function logo(){
+	die("
+	__        ___  _____ ____ _   _ ____ ___ ____  ____  
+	\ \      / / \|_   _/ ___| | | | __ )_ _|  _ \|  _ \ 
+	 \ \ /\ / / _ \ | || |   | |_| |  _ \| || |_) | | | |
+	  \ V  V / ___ \| || |___|  _  | |_) | ||  _ <| |_| |
+	   \_/\_/_/   \_\_| \____|_| |_|____/___|_| \_\____/ 
+														 
+");
+}
+
+
 /*
 DDOS防御
 */
@@ -274,7 +301,7 @@ function watch_ddos(){
 		$time += 1;
 		if ($time > $this->allow_time)
 		{
-			die('Access Denied.');
+			$this->logo();
 		}
 		else{
 			file_put_contents($IP_date_file, $time, LOCK_EX);
@@ -296,7 +323,7 @@ function watch_headers(){
 			$this->headers[$k] = '';
 			// $URI = explode('?',$this->request_url);
 			// header('Location: http://'.$_SERVER['SERVER_NAME'].':'.$_SERVER["SERVER_PORT"].$URI[0]);
-			die("Access Denied..");
+			$this->logo();
 		}
 	}
 }
@@ -415,8 +442,7 @@ function watch_attack_keyword($str){
 	if(preg_match("/flag/i", $str)){
 		$this->write_attack_log("Catch attack: < !!GETFLAG!! >");
 		if($waf_flag == true){
-			print($waf_fake_flag);
-			die(); 
+			die($waf_fake_flag);
 		}
 	}
 }
