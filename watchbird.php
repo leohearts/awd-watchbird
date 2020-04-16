@@ -94,7 +94,7 @@ function get_preg_flag(){  // 获取自己flag的正则表达式并保存在文�
 	$result = '';
 	$flag = file_get_contents($flag_path);
 	$flag = trim($flag);
-	if(strlen($flag) >= 15)
+	if(strlen($flag) >= 18)
 	{
 		$flag1 = substr($flag, 0, strlen($flag)/3);
 		$flag1 = preg_quote($flag1, '/');
