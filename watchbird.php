@@ -355,8 +355,7 @@ function watch_special_char($str){
 	{
 		$this->write_attack_log($txt);
 		if($waf_special_char == true){
-			$this->redirect();
-			die(); 
+			$this->logo();
 		}
 	}
 	return $str;
@@ -396,11 +395,11 @@ function filter_0x25($str){
 /*
 对非法请求进行重定向
 */
-function redirect(){
-	$URI = explode('?',$this->request_url);
-	header('Location: http://'.$_SERVER['SERVER_NAME'].':'.$_SERVER["SERVER_PORT"].$URI[0]);
-	die();
-}
+// function redirect(){
+// 	$URI = explode('?',$this->request_url);
+// 	header('Location: http://'.$_SERVER['SERVER_NAME'].':'.$_SERVER["SERVER_PORT"].$URI[0]);
+// 	die();
+// }
 
 /*
 监测攻击关键字
@@ -410,7 +409,7 @@ function watch_attack_keyword($str){
 	if(preg_match($sql_blacklist, $str)){
 		$this->write_attack_log("Catch attack: < SQLI > ");
 		if($waf_sql == true){
-			$this->redirect();
+			$this->logo();
 		}
 	}
 	if(substr_count($str,$_SERVER['PHP_SELF']) < 2){
@@ -418,25 +417,25 @@ function watch_attack_keyword($str){
 		if(preg_match("/\.\.|.*\.php[2357]{0,1}|\.phtml/i", $tmp)){ 
 			$this->write_attack_log("Catch attack: < LFI/LFR > ");
 			if($waf_lfi == true){
-				$this->redirect();
+				$this->logo();
 			}
 		}
 	}else{
 		$this->write_attack_log("Catch attack: < LFI/LFR > ");
 		if($waf_lfi == true){
-			$this->redirect();
+			$this->logo();
 		}
 	}
 	if(preg_match($rce_blacklist, $str)){
 		$this->write_attack_log("Catch attack: < RCE > ");
 		if($waf_rce == true){
-			$this->redirect(); 
+			$this->logo();
 		}
 	}
 	if(preg_match("/phar|zip|compress.bzip2|compress.zlib/i", $str)){
 		$this->write_attack_log("Catch attack: < phar unserialize >");
 		if($waf_unserialize == true){
-			$this->redirect(); 
+			$this->logo();
 		}
 	}
 	if(preg_match("/flag/i", $str)){
