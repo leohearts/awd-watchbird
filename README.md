@@ -1,4 +1,6 @@
 # Watchbird
+***Version 1.0***
+
 ***A Simple PHP WAF for AWD***
 
 ## 功能:
@@ -34,3 +36,7 @@
 - *Leohearts*
 - *guoqing*
 
+## 未来视
+
+- 控制waf的网页前端
+- 流量重放
