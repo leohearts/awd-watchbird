@@ -26,7 +26,7 @@
 
 1. git clone https://github.com/leohearts/awd-watchbird.git
 2. 编译waf.c生成.so文件,参考命令:gcc waf.c -shared -fPIC -o waf.so
-3. 将waf.so文件存放在/var/www/html或其他目录中
+3. 将waf.so,watchbird.php文件存放在/var/www/html或其他目录中
 4. 修改watchbird.php的配置(包含详细的注释)
 5. 寻找入口文件,将以下代码放入第一行`<?php include "watchbird.php" ?>`
 
