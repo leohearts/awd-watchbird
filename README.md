@@ -34,7 +34,6 @@
 
 - *Longlone*
 - *Leohearts*
-- *guoqing*
 
 ## 未来视
 
