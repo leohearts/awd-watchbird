@@ -856,7 +856,7 @@ class configmanager
 	public $debug = 0;  // debug模式
 	public $allow_ddos_time = 3;  // 每秒最多10个访问 
 
-	// public $waf_fake_flag = "flag{Longlone:W0r1<_HaRd3r}";  // 虚假flag,需开启waf_flag
+	public $waf_fake_flag = "flag{Longlone:W0r1<_HaRd3r}";  // 虚假flag,需开启waf_flag
 	public $remote_ip = "127.0.0.1";    //	服务器ip
 	public $remote_port = 80;    //	服务器端口
 
