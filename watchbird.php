@@ -16,8 +16,8 @@ A Simple PHP WAF for AWD
 
 Credits:
 	[AWD_PHP watchbird] (Original WAF Framework)
-	[Longlone](https://github.com/WAY29) (Configuring keyword and upload protection, Global optimization)
-	[Leohearts](https://ytoworld.tk) (PHP Reverse proxy, Response body detection, LD_PRELOAD keyword detection)
+	[Longlone](https://github.com/WAY29) (Main developer)
+	[Leohearts](https://ytoworld.tk) (Main developer)
 	[guoqing](https://blog.izgq.net/archives/1029/) (Function: getFormData(), Regenerating RAW multipart/form-data post data)(CC BY-NC-SA 4.0)
 
 Lisence:
