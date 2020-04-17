@@ -91,6 +91,13 @@ $allow_ddos_time = 3;  // 每秒最多10个访问
 // 	$waf_sql = 1;
 // 	$waf_special_char = 1;
 // }
+
+function is_browser($v,$vv){
+    return strstr($v, $vv);
+}
+
+
+
 function get_fake_flag(){
 	global $flag_path;
 	$flag = trim(file_get_contents($flag_path));
@@ -308,14 +315,22 @@ function deldir($dir) {
 die并且输出logo
 */
 function logo(){
-	die("
-	__        ___  _____ ____ _   _ ____ ___ ____  ____  
-	\ \      / / \|_   _/ ___| | | | __ )_ _|  _ \|  _ \ 
+	$logo = <<<LOGO
+	__        ___  _____ ____ _   _ ____ ___ ____  ____
+	\ \      / / \|_   _/ ___| | | | __ )_ _|  _ \|  _ \
 	 \ \ /\ / / _ \ | || |   | |_| |  _ \| || |_) | | | |
 	  \ V  V / ___ \| || |___|  _  | |_) | ||  _ <| |_| |
-	   \_/\_/_/   \_\_| \____|_| |_|____/___|_| \_\____/ 
-														 
-");
+	   \_/\_/_/   \_\_| \____|_| |_|____/___|_| \_\____/
+
+LOGO;
+$UAs=array("MSIE", "Firefox", "Chrome", "Safari", "Opera");
+$UA=$_SERVER["HTTP_USER_AGENT"];
+if (count(array_filter(array_map("is_browser", array_fill(0, count($UAs), $UA), $UAs)))){
+$logo="<pre>\n".$logo."\n</pre>";
+$logo=str_replace("\r","", $logo);
+$logo=str_replace("\n","</br>", $logo);
+}
+die($logo);
 }
 
 
