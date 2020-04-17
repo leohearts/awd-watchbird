@@ -54,7 +54,8 @@ Lisence:
 $os = 'linux';  // 操作系统,填linux/win,影响日志存放目录
 $flag_path = '/flag';  // 自己flag所在的路径
 $LDPRELOAD_PATH = '/var/www/html/waf.so';	//共享库路径
-$level = 4;  // 0~4 等级越高,防护能力越强,默认为4
+$config_path = '/var/tmp/watchbird.conf';
+// $level = 4;  // 0~4 等级越高,防护能力越强,默认为4
 error_reporting(0);
 
 // level处理
@@ -72,25 +73,25 @@ $flag_content_match = 0; // 匹配响应中有无flag特征
 $debug = 0;  // debug模式
 $allow_ddos_time = 3;  // 每秒最多10个访问 
 
-if ($level >= 1){  // 开启upload,lfi防御
-	$waf_upload = 1;
-	$waf_lfi = 1;
-} 
-if ($level >= 2){  // 开启getflag,unserialize,rce防御
-	$waf_flag = 1;
-	$waf_unserialize = 1;
-	$waf_rce = 1;
-	$waf_ldpreload = 1;
-} 
-if ($level >= 3){  // 开启headers,ddos,深度检测防御
-	$waf_headers = 1;
-	$waf_ddos = 1;
-	$flag_content_match = 1;
-}
-if ($level == 4){  // 开启sql,special_char防御  
-	$waf_sql = 1;
-	$waf_special_char = 1;
-}
+// if ($level >= 1){  // 开启upload,lfi防御
+// 	$waf_upload = 1;
+// 	$waf_lfi = 1;
+// } 
+// if ($level >= 2){  // 开启getflag,unserialize,rce防御
+// 	$waf_flag = 1;
+// 	$waf_unserialize = 1;
+// 	$waf_rce = 1;
+// 	$waf_ldpreload = 1;
+// } 
+// if ($level >= 3){  // 开启headers,ddos,深度检测防御
+// 	$waf_headers = 1;
+// 	$waf_ddos = 1;
+// 	$flag_content_match = 1;
+// }
+// if ($level == 4){  // 开启sql,special_char防御  
+// 	$waf_sql = 1;
+// 	$waf_special_char = 1;
+// }
 function get_fake_flag(){
 	global $flag_path;
 	$flag = trim(file_get_contents($flag_path));
@@ -663,4 +664,237 @@ if (!function_exists('getallheaders'))
     }
 }
 
+
+class ui
+{
+	public $passwdhash;
+	function show()
+	{
+		global $config;
+		// die(var_dump(get_object_vars($config)));
+		if (sha1($_GET['passwd']) == $this->passwdhash) {
+			$_SESSION['login'] = 'success';
+			echo "login success.";
+		}
+		if ($_SESSION['login'] !== 'success') {
+			$this->login();
+		}
+		print(<<<HTML_CODE
+        <html>
+            <head>
+                <title>Watchbird控制台</title>
+                <link rel="stylesheet" href="//cdnjs.loli.net/ajax/libs/mdui/0.4.3/css/mdui.min.css">
+                <script src="//cdnjs.loli.net/ajax/libs/mdui/0.4.3/js/mdui.min.js"></script>
+                <script>
+                    function switchdrawer() {
+                        var inst = new mdui.Drawer(document.getElementsByClassName("mdui-drawer")[0]);
+                        inst.toggle();
+                    }
+                    function changetheme() {
+                        var body = document.querySelector("body");
+                        var res = body.classList.replace("mdui-theme-layout-dark", "mdui-theme-primary-teal");
+                        if (!res){
+                            body.classList.replace("mdui-theme-primary-teal", "mdui-theme-layout-dark");
+                            body.classList.remove("mdui-theme-accent-pink");
+                            document.cookie = "theme=dark";
+                        }
+                        else{
+                            body.classList.add("mdui-theme-accent-pink");
+                            document.cookie = "theme=light";
+                        }
+                    }
+                    document.addEventListener("DOMContentLoaded", function () {
+                        if (document.cookie.replace(/(?:(?:^|.*;\s*)theme\s*\=\s*([^;]*).*$)|^.*$/, "$1") == "dark"){
+                            changetheme();
+                        }
+                    });
+                    function changevalue_switch(){
+                        var val = event.target.checked+0;
+                        fetch("?watchbird=change&key="+event.target.nextElementSibling.nextSibling.textContent.trim()+"&value="+val);
+                    }
+                    function changevalue_text(){
+                        var target = event.target;
+                        if (event.target.classList.contains("mdui-icon")){
+                            target = event.target.parentElement;
+                        }
+                        var key = target.parentElement.firstChild.firstChild.textContent.trim();
+                        var val = target.parentElement.firstChild.lastChild.value;
+                        fetch("?watchbird=change&key="+key+"&value="+escape(val));
+                    }
+                </script>
+            </head>
+            <body class="mdui-appbar-with-toolbar mdui-loaded mdui-drawer-body-left mdui-theme-primary-teal mdui-theme-accent-pink">
+                <div class="mdui-appbar mdui-appbar-fixed">
+                    <div class="mdui-toolbar mdui-color-theme">
+                        <a onclick="switchdrawer();" class="mdui-btn mdui-btn-icon"><i class="mdui-icon material-icons">menu</i></a>
+                        <a href="javascript:;" class="mdui-typo-headline">Watchbird控制台</a>
+                        <a href="javascript:;" class="mdui-typo-title">配置</a>
+                        <div class="mdui-toolbar-spacer"></div>
+                        <a onclick="changetheme();" class="mdui-btn mdui-btn-icon"><i class="mdui-icon material-icons">color_lens</i></a>
+                        <a onclick="location.reload();" class="mdui-btn mdui-btn-icon"><i class="mdui-icon material-icons">refresh</i></a>
+                    </div>
+                </div>
+                <!-- 默认抽屉栏在左侧 -->
+                <div class="mdui-drawer mdui-list mdui-shadow-10">
+                    <a href="#settings" onclick="document.getElementsByClassName('mdui-typo-title')[0].innerHTML = '配置'"  class="mdui-list-item mdui-ripple ">
+                        <i class="mdui-list-item-icon mdui-icon material-icons">settings</i>
+                        <div class="mdui-list-item-content">配置</div>
+                    </a>
+                    <a href="#log" onclick="document.getElementsByClassName('mdui-typo-title')[0].innerHTML = '日志'" class="mdui-list-item mdui-ripple ">
+                        <i class="mdui-list-item-icon mdui-icon material-icons">send</i>
+                        <div class="mdui-list-item-content">日志</div>
+                    </a>
+                </div>
+                <div class="mdui-container doc-container">
+                    <div class="mdui-row-md-2">
+HTML_CODE
+);
+
+		foreach (get_object_vars($config) as $key => $val) {
+			if ($val === 0) {
+				print('<div class="mdui-col"><label class="mdui-switch">
+  <input onclick="changevalue_switch();" type="checkbox"/>
+  <i class="mdui-switch-icon"></i>&nbsp;&nbsp;&nbsp;&nbsp;' . $key . '
+</label></div>');
+			}
+			if ($val === 1) {
+				print('<div class="mdui-col"><label class="mdui-switch">
+  <input onclick="changevalue_switch();" type="checkbox" checked />
+  <i class="mdui-switch-icon"></i>&nbsp;&nbsp;&nbsp;&nbsp;' . $key . '
+</label></div>');
+			}
+		}
+		print('</div>');
+		foreach (get_object_vars($config) as $key => $val) {
+			if ($val !== 0 && $val !== 1) {
+				print('<div class="mdui-row"><div class="mdui-textfield mdui-col-xs-10">' . $key . '
+  <textarea class="mdui-textfield-input" type="text" spellcheck="false">' . $val . '</textarea></div><p>&nbsp;</p><button onclick="changevalue_text();" class="mdui-btn mdui-btn-icon mdui-btn-raised mdui-color-theme-accent mdui-ripple"><i
+        class="mdui-icon material-icons">save</i></button></div>');
+			}
+		}
+		print(<<<HTML_CODE
+                </div>
+            </body>
+        </html>
+HTML_CODE
+);
+	}
+	function login()
+	{
+		die(<<<HTML_CODE
+        <html>
+            <head>
+                <title>Login - Watchbird</title>
+                <link rel="stylesheet" href="//cdnjs.loli.net/ajax/libs/mdui/0.4.3/css/mdui.min.css">
+                <script src="//cdnjs.loli.net/ajax/libs/mdui/0.4.3/js/mdui.min.js"></script>
+                <script>
+                    function login() {
+                        var passwd = document.querySelector("input").value;
+                        fetch("?watchbird=ui&passwd=" + passwd).then(function (resp) {
+                            location.reload();
+                        });
+                    }
+                    document.onkeydown = function (event) {
+                        if (event.key == 'Enter') {
+                            login();
+                        }
+                    }
+                </script>
+                <style>
+.loginform {
+  width: 400px;
+  height: 200px;
+  display: block;
+  margin: 150 auto;
+  box-shadow: 5px 5px 5px 5px gray;
+  border-radius: 10px;
+  padding: 20px;
+  padding-top: 10px;
+  background-color: #ffffee;
+}
+.loginform button{
+  margin: 0 auto;
+  display: block;
+}
+                </style>
+            </head>
+            <body>
+                <div class="loginform">
+                    <h2>Login</h2>
+                        <div class="mdui-textfield">
+                            <i class="mdui-icon material-icons">lock</i>
+                            <input class="mdui-textfield-input" type="text" placeholder="Password" name="passwd" />
+                        </div>
+                        <button class="mdui-btn mdui-btn-raised mdui-color-theme-accent mdui-ripple" onclick="login();">登录</button>
+                </div>
+            </body>
+        </html>
+HTML_CODE
+);
+	}
+}
+class configmanager
+{
+	// 功能开启选项
+	public $os = 'linux';  // 操作系统,填linux/win,影响日志存放目录
+	public $flag_path = '/flag';  // 自己flag所在的路径
+	public $LDPRELOAD_PATH = '/var/www/html/waf.so';    //共享库路径
+	// public $level = 4;  // 0~4 等级越高,防护能力越强,默认为4
+
+	// level处理
+	public $waf_headers = 1;  // headers防御
+	public $waf_ddos = 1;  // ddos防御
+	public $waf_upload = 1;  // 上传防御
+	public $waf_special_char = 1; // 特殊字符防御
+	public $waf_sql = 1;  // sql防御
+	public $waf_rce = 1;  // rce防御
+	public $waf_ldpreload = 1;    //基于LD_PRELOAD的rce防护
+	public $waf_lfi = 1;  // LFI/LFR 防御
+	public $waf_unserialize = 1; // phar反序列化防御
+	public $waf_flag = 1;  // getflag防御
+	public $flag_content_match = 1; // 匹配响应中有无flag特征
+	public $debug = 0;  // debug模式
+	public $allow_ddos_time = 3;  // 每秒最多10个访问 
+
+	public $waf_fake_flag = "flag{Longlone:W0r1<_HaRd3r}";  // 虚假flag,需开启waf_flag
+	public $remote_ip = "127.0.0.1";    //	服务器ip
+	public $remote_port = 80;    //	服务器端口
+
+	//名单配置
+	public $upload_whitelist = "/jpg|png|gif|txt/i";  // upload白名单
+	public $sql_blacklist = "/drop |dumpfile\b|INTO FILE|outfile\b|load_file|multipoint\(/i";
+	public $rce_blacklist = "/`|base64_encode|base64_decode|strrev|eval\(|assert\(|file_put_contents|fwrite|curl_exec\(|passthru\(|exec\(|dl\(|openlog|syslog|readlink|symlink|popepassthru|preg_replace|create_function|array_map|call_user_func|array_filter|usort|stream_socket_server|pcntl_exec|passthru|exec\(|system\(|chroot\(|scandir\(|chgrp\(|chown|shell_exec|proc_open|proc_get_status|popen\(|ini_alter|ini_restore|ini_set|_GET|_POST|_COOKIE|_FILE|i-ni_alter|ini_restore|ini_set|_GET|_POST|_COOKIE|_FILE/i";
+	function change($key, $val)
+	{
+		global $config_path;
+		$this->$key = $val;
+		echo $key;
+		echo $val . "\n";
+		if (is_numeric($val)) {
+			$this->$key = intval($val);
+		}
+		file_put_contents($config_path, serialize($this));
+		die('succ');
+	}
+}
+if (!file_exists($config_path)) {
+	file_put_contents($config_path, serialize(new configmanager()));
+}
+$config = unserialize(file_get_contents($config_path));
+foreach (get_object_vars($config) as $key => $val) {
+	$$key = $val;
+}
+session_start();
+if ($_GET['watchbird'] === "ui") {
+	$ui = new ui();
+	$ui->passwdhash = '3cb5cb5035dda707432a5187de67e5da84fac4e7'; //watchbird sha1
+	$ui->show();
+	die();
+}
+if ($_GET['watchbird'] === 'change') {
+	if ($_SESSION['login'] !== 'success') {
+		die('Credential error');
+	}
+	$config->change($_GET['key'], $_GET['value']);
+}
 $watchbird = new watchbird();
