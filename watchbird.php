@@ -483,7 +483,7 @@ function watch_attack_keyword($str){
 
 //	记录每次大概访问记录，类似日志，以便在详细记录中查找
 function write_access_log_probably() { 
-	$tmp = sha1("Syclover").time()."\n".sha1("Syclover");
+	$tmp = sha1("Syclover").time().sha1("Syclover");
 	$tmp .= "[" . date('H:i:s') . "]" . $_SERVER['REQUEST_METHOD'].' '.$this->request_url.' '.$_SERVER['SERVER_PROTOCOL'];
 	if (!empty($this->request_data)){
 		$tmp .= "\n".$this->request_data; 
@@ -494,7 +494,7 @@ function write_access_log_probably() {
 
 //	记录详细的访问头记录，包括GET POST http头, 以获取waf未检测到的攻击payload
 function write_access_logs_detailed(){
-	$tmp = sha1("Syclover").time(). "\n" . sha1("Syclover");
+	$tmp = sha1("Syclover").time(). sha1("Syclover");
 	$tmp .= "[" . date('H:i:s') . "]\n";
 	$tmp .= "SRC IP: " . $_SERVER["REMOTE_ADDR"]."\n";
 	$tmp .= $_SERVER['REQUEST_METHOD'].' '.$this->request_url.' '.$_SERVER['SERVER_PROTOCOL']."\n"; 
@@ -515,7 +515,7 @@ function write_access_logs_detailed(){
 记录攻击payload 第一个参数为记录类型  使用时直接调用函数
 */
 function write_attack_log($alert){
-	$tmp = sha1("Syclover").time(). "\n" . sha1("Syclover");
+	$tmp = sha1("Syclover").time(). sha1("Syclover");
 	$tmp .= "[" . date('H:i:s') . "] {".$alert."}\n";
 	$tmp .= "SRC IP: " . $_SERVER["REMOTE_ADDR"]."\n";
 	$tmp .= $_SERVER['REQUEST_METHOD'].' '.$this->request_url.' '.$_SERVER['SERVER_PROTOCOL']."\n"; 
@@ -719,8 +719,13 @@ class ui
                 <link rel="stylesheet" href="//cdnjs.loli.net/ajax/libs/mdui/0.4.3/css/mdui.min.css">
 				<script src="//cdnjs.loli.net/ajax/libs/mdui/0.4.3/js/mdui.min.js"></script>
 				<style>
-					*{font-family: Arial, Helvetica, sans-serif;}
-					textarea{font-family: monospace !important;}
+*{font-family: Arial, Helvetica, sans-serif;}
+textarea{font-family: monospace !important;}
+.logger .mdui-col {
+  margin: 20px 20px;
+  max-width: 46%;
+  height: 45%;
+}
 				</style>
 				<script>
                     function switchdrawer() {
@@ -816,8 +821,43 @@ HTML_CODE
 		}
 		print('</div>');
 		print(<<<HTML_CODE
-		<div id="日志" class="mdui-container mdui-not-hidden doc-container">
-			2333
+		<div id="日志" class="mdui-container mdui-not-hidden doc-container mdui-row-xs-2 logger">
+			<div id="flag_eye_to_eye" class="mdui-shadow-5 mdui-col mdui-hoverable ">
+				<p style="width: 60%;display: inline-flex;">flag_eye_to_eye</p>
+				<label class="mdui-checkbox">
+					<input type="checkbox" checked />
+					<i class="mdui-checkbox-icon"></i>
+					自动更新
+				</label>
+				<div class="mdui-divider"></div>
+			</div>
+			<div id="flag_log" class="mdui-shadow-5 mdui-col mdui-hoverable ">
+				<p style="width: 60%;display: inline-flex;">flag_log</p>
+				<label class="mdui-checkbox"">
+					<input type="checkbox" checked />
+					<i class="mdui-checkbox-icon"></i>
+					自动更新
+				</label>
+				<div class="mdui-divider"></div>
+			</div>
+			<div id="all_requests" class="mdui-shadow-5 mdui-col mdui-hoverable ">
+				<p style="width: 60%;display: inline-flex;">all_requests</p>
+				<label class="mdui-checkbox">
+					<input type="checkbox" checked />
+					<i class="mdui-checkbox-icon"></i>
+					自动更新
+				</label>
+				<div class="mdui-divider"></div>
+			</div>
+			<div id="web_log" class="mdui-shadow-5 mdui-col mdui-hoverable ">
+				<p style="width: 60%;display: inline-flex;">web_log</p>
+				<label class="mdui-checkbox">
+					<input type="checkbox" checked />
+					<i class="mdui-checkbox-icon"></i>
+					自动更新
+				</label>
+				<div class="mdui-divider"></div>
+			</div>
 HTML_CODE
 		);
 		print('</div>');
@@ -880,6 +920,19 @@ HTML_CODE
 	}
 	function showlog(){
 		$module = $_GET['module'];
+		$log = file_get_contents("/tmp/watchbird/log/".$module.".txt");
+		$resp = array();
+		$rawlog = explode('a2f5464863e4ef86d07b7bd89e815407fbfaa912', $log);
+		for ($i = sizeof($rawlog) - 2;$i>0;$i-=2){
+			if (is_numeric($rawlog[$i])) {
+				if (intval($rawlog[$i]) <= intval($_GET['timestamp'])) {
+					break;
+				}
+				array_push($resp, $rawlog[$i]);
+				array_push($resp, $rawlog[$i+1]);
+			}
+		}
+		die(json_encode(array_reverse($resp)));
 	}
 }
 
@@ -911,6 +964,5 @@ if ($_GET['watchbird'] === 'log') {
 	}
 	$ui = new ui();
 	$ui->showlog();
-	die();
 }
 $watchbird = new watchbird();
