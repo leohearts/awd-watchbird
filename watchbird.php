@@ -54,7 +54,7 @@ Lisence:
 $os = 'linux';  // 操作系统,填linux/win,影响日志存放目录
 $flag_path = '/flag';  // 自己flag所在的路径
 $LDPRELOAD_PATH = '/var/www/html/waf.so';	//共享库路径
-$config_path = '/var/tmp/watchbird.conf';
+$config_path = '/tmp/watchbird.conf';
 // $level = 4;  // 0~4 等级越高,防护能力越强,默认为4
 error_reporting(0);
 
@@ -125,17 +125,62 @@ function get_preg_flag(){  // 获取自己flag的正则表达式并保存在文�
 }
 
 // 其他配置
-$waf_fake_flag = "flag{Longlone:W0r1<_HaRd3r}";  // 虚假flag,需开启waf_flag
+$waf_fake_flag = "";  // 虚假flag,需开启waf_flag
 $waf_fake_flag2 = get_fake_flag();  //	高级的虚假flag,用于当对面即将获得flag但是被深度检测拦截的时候
 // $content_disallow = "/".get_preg_flag(). "not_a_regular_exression/i"; //  一定要保证不和正常内容冲突
 $content_disallow = '/'.trim(file_get_contents($flag_path)).'/'; //  一定要保证不和正常内容冲突
-$remote_ip = "127.0.0.1";	//	服务器ip
+$remote_ip = "";	//	服务器ip
 $remote_port = 80;	//	服务器端口
 
 //名单配置
-$upload_whitelist="/jpg|png|gif|txt/i";  // upload白名单
-$sql_blacklist="/drop |dumpfile\b|INTO FILE|outfile\b|load_file|multipoint\(/i";
-$rce_blacklist = "/`|base64_encode|base64_decode|strrev|eval\(|assert\(|file_put_contents|fwrite|curl_exec\(|passthru\(|exec\(|dl\(|openlog|syslog|readlink|symlink|popepassthru|preg_replace|create_function|array_map|call_user_func|array_filter|usort|stream_socket_server|pcntl_exec|passthru|exec\(|system\(|chroot\(|scandir\(|chgrp\(|chown|shell_exec|proc_open|proc_get_status|popen\(|ini_alter|ini_restore|ini_set|_GET|_POST|_COOKIE|_FILE|ini_alter|ini_restore|ini_set|_GET|_POST|_COOKIE|_FILE/i";
+$upload_whitelist="";  // upload白名单
+$sql_blacklist="";
+$rce_blacklist = "";
+
+class configmanager
+{
+	// 功能开启选项
+	public $os = 'linux';  // 操作系统,填linux/win,影响日志存放目录
+	public $flag_path = '/flag';  // 自己flag所在的路径
+	public $LDPRELOAD_PATH = '/var/www/html/waf.so';    //共享库路径
+	// public $level = 4;  // 0~4 等级越高,防护能力越强,默认为4
+
+	// level处理
+	public $waf_headers = 1;  // headers防御
+	public $waf_ddos = 1;  // ddos防御
+	public $waf_upload = 1;  // 上传防御
+	public $waf_special_char = 1; // 特殊字符防御
+	public $waf_sql = 1;  // sql防御
+	public $waf_rce = 1;  // rce防御
+	public $waf_ldpreload = 1;    //基于LD_PRELOAD的rce防护
+	public $waf_lfi = 1;  // LFI/LFR 防御
+	public $waf_unserialize = 1; // phar反序列化防御
+	public $waf_flag = 1;  // getflag防御
+	public $flag_content_match = 1; // 匹配响应中有无flag特征
+	public $debug = 0;  // debug模式
+	public $allow_ddos_time = 3;  // 每秒最多10个访问 
+
+	public $waf_fake_flag = "flag{Longlone:W0r1<_HaRd3r}";  // 虚假flag,需开启waf_flag
+	public $remote_ip = "127.0.0.1";    //	服务器ip
+	public $remote_port = 80;    //	服务器端口
+
+	//名单配置
+	public $upload_whitelist = "/jpg|png|gif|txt/i";  // upload白名单
+	public $sql_blacklist = "/drop |dumpfile\b|INTO FILE|outfile\b|load_file|multipoint\(/i";
+	public $rce_blacklist = "/`|base64_encode|base64_decode|strrev|eval\(|assert\(|file_put_contents|fwrite|curl_exec\(|passthru\(|exec\(|dl\(|openlog|syslog|readlink|symlink|popepassthru|preg_replace|create_function|array_map|call_user_func|array_filter|usort|stream_socket_server|pcntl_exec|passthru|exec\(|system\(|chroot\(|scandir\(|chgrp\(|chown|shell_exec|proc_open|proc_get_status|popen\(|ini_alter|ini_restore|ini_set|_GET|_POST|_COOKIE|_FILE|i-ni_alter|ini_restore|ini_set|_GET|_POST|_COOKIE|_FILE/i";
+	function change($key, $val)
+	{
+		global $config_path;
+		$this->$key = $val;
+		echo $key;
+		echo $val . "\n";
+		if (is_numeric($val)) {
+			$this->$key = intval($val);
+		}
+		file_put_contents($config_path, serialize($this));
+		die('succ');
+	}
+}
 
 class watchbird{
 	private $request_url;
@@ -684,8 +729,12 @@ class ui
             <head>
                 <title>Watchbird控制台</title>
                 <link rel="stylesheet" href="//cdnjs.loli.net/ajax/libs/mdui/0.4.3/css/mdui.min.css">
-                <script src="//cdnjs.loli.net/ajax/libs/mdui/0.4.3/js/mdui.min.js"></script>
-                <script>
+				<script src="//cdnjs.loli.net/ajax/libs/mdui/0.4.3/js/mdui.min.js"></script>
+				<style>
+					*{font-family: Arial, Helvetica, sans-serif;}
+					textarea{font-family: monospace !important;}
+				</style>
+				<script>
                     function switchdrawer() {
                         var inst = new mdui.Drawer(document.getElementsByClassName("mdui-drawer")[0]);
                         inst.toggle();
@@ -720,7 +769,12 @@ class ui
                         var key = target.parentElement.firstChild.firstChild.textContent.trim();
                         var val = target.parentElement.firstChild.lastChild.value;
                         fetch("?watchbird=change&key="+key+"&value="+escape(val));
-                    }
+					}
+					function showmodule(e){
+						document.getElementById(document.getElementsByClassName('mdui-typo-title')[0].innerHTML).classList.replace("mdui-not-hidden", "mdui-hidden");
+						document.getElementById(e).classList.replace("mdui-hidden", "mdui-not-hidden");
+						document.getElementsByClassName('mdui-typo-title')[0].innerHTML = e;
+					}
                 </script>
             </head>
             <body class="mdui-appbar-with-toolbar mdui-loaded mdui-drawer-body-left mdui-theme-primary-teal mdui-theme-accent-pink">
@@ -736,16 +790,16 @@ class ui
                 </div>
                 <!-- 默认抽屉栏在左侧 -->
                 <div class="mdui-drawer mdui-list mdui-shadow-10">
-                    <a href="#settings" onclick="document.getElementsByClassName('mdui-typo-title')[0].innerHTML = '配置'"  class="mdui-list-item mdui-ripple ">
+                    <a onclick="showmodule('配置');"  class="mdui-list-item mdui-ripple ">
                         <i class="mdui-list-item-icon mdui-icon material-icons">settings</i>
                         <div class="mdui-list-item-content">配置</div>
                     </a>
-                    <a href="#log" onclick="document.getElementsByClassName('mdui-typo-title')[0].innerHTML = '日志'" class="mdui-list-item mdui-ripple ">
+                    <a onclick="showmodule('日志');" class="mdui-list-item mdui-ripple ">
                         <i class="mdui-list-item-icon mdui-icon material-icons">send</i>
                         <div class="mdui-list-item-content">日志</div>
                     </a>
                 </div>
-                <div class="mdui-container doc-container">
+                <div id="配置" class="mdui-container mdui-not-hidden doc-container">
                     <div class="mdui-row-md-2">
 HTML_CODE
 );
@@ -772,12 +826,16 @@ HTML_CODE
         class="mdui-icon material-icons">save</i></button></div>');
 			}
 		}
+		print('</div>');
 		print(<<<HTML_CODE
-                </div>
-            </body>
-        </html>
+		<div id="日志" class="mdui-container mdui-not-hidden doc-container">
+			2333
 HTML_CODE
-);
+		);
+		print('</div>');
+		print('
+            </body>
+        </html>');
 	}
 	function login()
 	{
@@ -833,50 +891,7 @@ HTML_CODE
 );
 	}
 }
-class configmanager
-{
-	// 功能开启选项
-	public $os = 'linux';  // 操作系统,填linux/win,影响日志存放目录
-	public $flag_path = '/flag';  // 自己flag所在的路径
-	public $LDPRELOAD_PATH = '/var/www/html/waf.so';    //共享库路径
-	// public $level = 4;  // 0~4 等级越高,防护能力越强,默认为4
 
-	// level处理
-	public $waf_headers = 1;  // headers防御
-	public $waf_ddos = 1;  // ddos防御
-	public $waf_upload = 1;  // 上传防御
-	public $waf_special_char = 1; // 特殊字符防御
-	public $waf_sql = 1;  // sql防御
-	public $waf_rce = 1;  // rce防御
-	public $waf_ldpreload = 1;    //基于LD_PRELOAD的rce防护
-	public $waf_lfi = 1;  // LFI/LFR 防御
-	public $waf_unserialize = 1; // phar反序列化防御
-	public $waf_flag = 1;  // getflag防御
-	public $flag_content_match = 1; // 匹配响应中有无flag特征
-	public $debug = 0;  // debug模式
-	public $allow_ddos_time = 3;  // 每秒最多10个访问 
-
-	public $waf_fake_flag = "flag{Longlone:W0r1<_HaRd3r}";  // 虚假flag,需开启waf_flag
-	public $remote_ip = "127.0.0.1";    //	服务器ip
-	public $remote_port = 80;    //	服务器端口
-
-	//名单配置
-	public $upload_whitelist = "/jpg|png|gif|txt/i";  // upload白名单
-	public $sql_blacklist = "/drop |dumpfile\b|INTO FILE|outfile\b|load_file|multipoint\(/i";
-	public $rce_blacklist = "/`|base64_encode|base64_decode|strrev|eval\(|assert\(|file_put_contents|fwrite|curl_exec\(|passthru\(|exec\(|dl\(|openlog|syslog|readlink|symlink|popepassthru|preg_replace|create_function|array_map|call_user_func|array_filter|usort|stream_socket_server|pcntl_exec|passthru|exec\(|system\(|chroot\(|scandir\(|chgrp\(|chown|shell_exec|proc_open|proc_get_status|popen\(|ini_alter|ini_restore|ini_set|_GET|_POST|_COOKIE|_FILE|i-ni_alter|ini_restore|ini_set|_GET|_POST|_COOKIE|_FILE/i";
-	function change($key, $val)
-	{
-		global $config_path;
-		$this->$key = $val;
-		echo $key;
-		echo $val . "\n";
-		if (is_numeric($val)) {
-			$this->$key = intval($val);
-		}
-		file_put_contents($config_path, serialize($this));
-		die('succ');
-	}
-}
 if (!file_exists($config_path)) {
 	file_put_contents($config_path, serialize(new configmanager()));
 }
@@ -884,14 +899,15 @@ $config = unserialize(file_get_contents($config_path));
 foreach (get_object_vars($config) as $key => $val) {
 	$$key = $val;
 }
-session_start();
 if ($_GET['watchbird'] === "ui") {
+	session_start();
 	$ui = new ui();
 	$ui->passwdhash = '3cb5cb5035dda707432a5187de67e5da84fac4e7'; //watchbird sha1
 	$ui->show();
 	die();
 }
 if ($_GET['watchbird'] === 'change') {
+	session_start();
 	if ($_SESSION['login'] !== 'success') {
 		die('Credential error');
 	}
