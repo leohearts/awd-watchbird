@@ -51,7 +51,6 @@ Lisence:
 
 
 // 功能开启选项
-$os = 'linux';  // 操作系统,填linux/win,影响日志存放目录
 $flag_path = '/flag';  // 自己flag所在的路径
 $LDPRELOAD_PATH = '/var/www/html/waf.so';	//共享库路径
 $config_path = '/tmp/watchbird.conf';
@@ -140,7 +139,6 @@ $rce_blacklist = "";
 class configmanager
 {
 	// 功能开启选项
-	public $os = 'linux';  // 操作系统,填linux/win,影响日志存放目录
 	public $flag_path = '/flag';  // 自己flag所在的路径
 	public $LDPRELOAD_PATH = '/var/www/html/waf.so';    //共享库路径
 	// public $level = 4;  // 0~4 等级越高,防护能力越强,默认为4
@@ -200,21 +198,11 @@ class watchbird{
 // 自动部署构造方法
 function __construct(){
 	//echo $_SERVER['SERVER_PORT']."\n";
-	global $os, $waf_upload, $allow_ddos_time, $waf_headers, $waf_ddos, $content_disallow, $flag_content_match, $waf_fake_flag2, $waf_ldpreload, $LDPRELOAD_PATH;
-	if ($os == 'linux')
-	{
-		$this->dir = '/tmp/watchbird/';
-		$this->logdir = $this->dir.'log/';
-		$this->uploaddir = $this->dir.'upload/';
-		$this->ipdir = $this->dir.'ip/';
-	}
-	elseif($os == 'win')
-	{
-		$this->dir = 'D:\\watchbird\\';
-		$this->logdir = $this->dir.'log\\';
-		$this->uploaddir = $this->dir.'upload\\';
-		$this->ipdir = $this->dir.'ip\\';
-	}
+	global $waf_upload, $allow_ddos_time, $waf_headers, $waf_ddos, $content_disallow, $flag_content_match, $waf_fake_flag2, $waf_ldpreload, $LDPRELOAD_PATH;
+	$this->dir = '/tmp/watchbird/';
+	$this->logdir = $this->dir.'log/';
+	$this->uploaddir = $this->dir.'upload/';
+	$this->ipdir = $this->dir.'ip/';
 	if ($waf_ldpreload == 1) {
 		putenv("LD_PRELOAD=" . $LDPRELOAD_PATH);
 	}
@@ -495,8 +483,8 @@ function watch_attack_keyword($str){
 
 //	记录每次大概访问记录，类似日志，以便在详细记录中查找
 function write_access_log_probably() { 
-	$tmp = sha1("Syclover")."\n";
-	$tmp .= "[" . date('y-m-d H:i:s') . "]" . $_SERVER['REQUEST_METHOD'].' '.$this->request_url.' '.$_SERVER['SERVER_PROTOCOL'];
+	$tmp = sha1("Syclover").time()."\n".sha1("Syclover");
+	$tmp .= "[" . date('H:i:s') . "]" . $_SERVER['REQUEST_METHOD'].' '.$this->request_url.' '.$_SERVER['SERVER_PROTOCOL'];
 	if (!empty($this->request_data)){
 		$tmp .= "\n".$this->request_data; 
 	}
@@ -506,8 +494,8 @@ function write_access_log_probably() {
 
 //	记录详细的访问头记录，包括GET POST http头, 以获取waf未检测到的攻击payload
 function write_access_logs_detailed(){
-	$tmp = sha1("Syclover")."\n";
-	$tmp .= "[" . date('y-m-d H:i:s') . "]\n";
+	$tmp = sha1("Syclover").time(). "\n" . sha1("Syclover");
+	$tmp .= "[" . date('H:i:s') . "]\n";
 	$tmp .= "SRC IP: " . $_SERVER["REMOTE_ADDR"]."\n";
 	$tmp .= $_SERVER['REQUEST_METHOD'].' '.$this->request_url.' '.$_SERVER['SERVER_PROTOCOL']."\n"; 
 	foreach($this->headers as $k => $v) {
@@ -527,8 +515,8 @@ function write_access_logs_detailed(){
 记录攻击payload 第一个参数为记录类型  使用时直接调用函数
 */
 function write_attack_log($alert){
-	$tmp = sha1("Syclover")."\n";
-	$tmp .= "[" . date('y-m-d H:i:s') . "] {".$alert."}\n";
+	$tmp = sha1("Syclover").time(). "\n" . sha1("Syclover");
+	$tmp .= "[" . date('H:i:s') . "] {".$alert."}\n";
 	$tmp .= "SRC IP: " . $_SERVER["REMOTE_ADDR"]."\n";
 	$tmp .= $_SERVER['REQUEST_METHOD'].' '.$this->request_url.' '.$_SERVER['SERVER_PROTOCOL']."\n"; 
 	foreach($this->headers as $k => $v) {
@@ -592,9 +580,9 @@ function getcont(){
 当响应包中存在flag时写入日志
 */
 function write_flag_log(){
-	$tmp = sha1("Syclover")."\n";
+	$tmp = sha1("Syclover").time()."\n".sha1("Syclover");
+	$tmp .= "[" . date('H:i:s') . "] \n";
 	$tmp .= "\nRequest:\n";
-	$tmp .= "[" . date('y-m-d H:i:s') . "] \n";
 	$tmp .= "SRC IP: " . $_SERVER["REMOTE_ADDR"]."\n";
 	$tmp .= $_SERVER['REQUEST_METHOD'].' '.$_SERVER['REQUEST_URI'].' '.$_SERVER['SERVER_PROTOCOL']."\n"; 
 	foreach($this->headers as $k => $v) {
@@ -890,6 +878,9 @@ HTML_CODE
 HTML_CODE
 );
 	}
+	function showlog(){
+		$module = $_GET['module'];
+	}
 }
 
 if (!file_exists($config_path)) {
@@ -912,5 +903,14 @@ if ($_GET['watchbird'] === 'change') {
 		die('Credential error');
 	}
 	$config->change($_GET['key'], $_GET['value']);
+}
+if ($_GET['watchbird'] === 'log') {
+	session_start();
+	if ($_SESSION['login'] !== 'success') {
+		die('Credential error');
+	}
+	$ui = new ui();
+	$ui->showlog();
+	die();
 }
 $watchbird = new watchbird();
