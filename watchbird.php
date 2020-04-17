@@ -823,7 +823,7 @@ HTML_CODE
                     <h2>Login</h2>
                         <div class="mdui-textfield">
                             <i class="mdui-icon material-icons">lock</i>
-                            <input class="mdui-textfield-input" type="text" placeholder="Password" name="passwd" />
+                            <input class="mdui-textfield-input" type="password" placeholder="Password" name="passwd" />
                         </div>
                         <button class="mdui-btn mdui-btn-raised mdui-color-theme-accent mdui-ripple" onclick="login();">登录</button>
                 </div>
