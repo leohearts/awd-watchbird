@@ -53,7 +53,7 @@ Lisence:
 // 功能开启选项
 $flag_path = '/flag';  // 自己flag所在的路径
 $LDPRELOAD_PATH = '/var/www/html/waf.so';	//共享库路径
-$config_path = '/tmp/watchbird.conf';
+$config_path = '/tmp/watchbird/watchbird.conf';
 // $level = 4;  // 0~4 等级越高,防护能力越强,默认为4
 error_reporting(0);
 
