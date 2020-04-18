@@ -22,6 +22,11 @@
     - 响应flag检测并返回虚假flag
 - 基于LD_PRELOAD的指令执行保护
 
+- 网页控制台:
+    - 功能开关及配置
+    - 实时日志查看
+    - 日志流量重放, 可广播流量至指定网段*(建设中)*
+
 ## 使用
 
 1. git clone https://github.com/leohearts/awd-watchbird.git
@@ -34,8 +39,3 @@
 
 - *Longlone*
 - *Leohearts*
-
-## 未来视
-
-- 控制waf的网页前端*建设中*
-- 流量重放
