@@ -148,6 +148,7 @@ class configmanager
 	// 功能开启选项
 	public $flag_path = '/flag';  // 自己flag所在的路径
 	public $LDPRELOAD_PATH = '/var/www/html/waf.so';    //共享库路径
+	public $password_sha1 = 'unset';
 	// public $level = 4;  // 0~4 等级越高,防护能力越强,默认为4
 
 	// level处理
@@ -720,6 +721,12 @@ class ui
 	{
 		global $config;
 		// die(var_dump(get_object_vars($config)));
+		if ($this->passwdhash === 'unset'){
+			if (isset($_GET['passwd'])){
+				$config->change('password_sha1', sha1($_GET['passwd']));
+				die('密码初始化成功');
+			}
+		}
 		if (sha1($_GET['passwd']) == $this->passwdhash) {
 			$_SESSION['login'] = 'success';
 			echo "login success.";
@@ -981,7 +988,7 @@ HTML_CODE
 	}
 	function login()
 	{
-		die(<<<HTML_CODE
+		echo(<<<HTML_CODE
         <html>
             <head>
                 <title>Login - Watchbird</title>
@@ -1020,7 +1027,14 @@ HTML_CODE
             </head>
             <body>
                 <div class="loginform">
-                    <h2>Login</h2>
+HTML_CODE
+);
+
+					if ($this->passwdhash === 'unset') {
+						echo "<h2>初始化密码</h2><small>第一次登录控制台, 请设置密码:</small>";
+					}
+					else {echo "<h2>Login</h2>";}
+					die(<<<HTML_CODE
                         <div class="mdui-textfield">
                             <i class="mdui-icon material-icons">lock</i>
                             <input class="mdui-textfield-input" type="password" placeholder="Password" name="passwd" />
@@ -1060,7 +1074,7 @@ foreach (get_object_vars($config) as $key => $val) {
 if ($_GET['watchbird'] === "ui") {
 	session_start();
 	$ui = new ui();
-	$ui->passwdhash = '3cb5cb5035dda707432a5187de67e5da84fac4e7'; //watchbird sha1
+	$ui->passwdhash = $config->password_sha1;
 	$ui->show();
 	die();
 }
