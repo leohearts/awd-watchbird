@@ -913,7 +913,7 @@ HTML_CODE
 		}
 		print('</div>');
 		print(<<<HTML_CODE
-		<div id="日志" class="mdui-container mdui-not-hidden doc-container mdui-row-xs-2 logger">
+		<div id="日志" class="mdui-container mdui-hidden doc-container mdui-row-xs-2 logger">
 			<div id="flag_eye_to_eye" class="mdui-shadow-5 mdui-col mdui-hoverable ">
 				<p style="width: 60%;display: inline-flex;left: 20px;position: relative;">flag_eye_to_eye</p>
 				<label class="mdui-checkbox">
