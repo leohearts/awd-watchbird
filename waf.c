@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 __attribute__((constructor)) watchbird(int argc, char *argv[]) {
+    // exit(); // 去掉这个注释就可以禁止任何程序通过php执行
     for (int i = 0; i < argc; i++) {
         if (strstr(argv[i], "flag") != NULL ||
             strstr(argv[i], "LD_PRELOAD") != NULL ||

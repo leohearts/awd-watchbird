@@ -1,5 +1,5 @@
 # Watchbird
-***Version 1.2***
+***Version 1.3***
 
 ***A PHP WAF for AWD***
 
