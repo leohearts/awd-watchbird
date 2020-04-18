@@ -789,8 +789,14 @@ pre{
                         if (document.cookie.replace(/(?:(?:^|.*;\s*)theme\s*\=\s*([^;]*).*$)|^.*$/, "$1") == "dark"){
                             changetheme();
 						}
-						setInterval(checklog, 1000);
+						startDaemon();
                     });
+					async function startDaemon(){
+						while(1){
+							await checklog();
+							await sleep(1000);
+						}
+					}
                     function changevalue_switch(){
                         var val = event.target.checked+0;
                         fetch("?watchbird=change&key="+event.target.nextElementSibling.nextSibling.textContent.trim()+"&value="+val);
