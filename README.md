@@ -1,7 +1,7 @@
 # Watchbird
-***Version 1.0***
+***Version 1.2***
 
-***A Simple PHP WAF for AWD***
+***A PHP WAF for AWD***
 
 ## 功能:
 
