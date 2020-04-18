@@ -580,7 +580,7 @@ function getcont(){
 当响应包中存在flag时写入日志
 */
 function write_flag_log(){
-	$tmp = sha1("Syclover").time()."\n".sha1("Syclover");
+	$tmp = sha1("Syclover").time().sha1("Syclover");
 	$tmp .= "[" . date('H:i:s') . "] \n";
 	$tmp .= "\nRequest:\n";
 	$tmp .= "SRC IP: " . $_SERVER["REMOTE_ADDR"]."\n";
@@ -723,11 +723,29 @@ class ui
 textarea{font-family: monospace !important;}
 .logger .mdui-col {
   margin: 20px 20px;
-  max-width: 46%;
+  max-width: 45%;
   height: 45%;
+}
+.logcontainer .mdui-card{
+  margin-top: 10px;
+  transition: 0.6s;
+  opacity: 0;
+}
+.logcontainer .mdui-card.active{
+  opacity: 1;
+}
+.logger div.mdui-col{
+  overflow: auto;
+}
+pre{
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 300;
 }
 				</style>
 				<script>
+					function sleep(ms) {
+						return new Promise(resolve => setTimeout(resolve, ms));
+					}
                     function switchdrawer() {
                         var inst = new mdui.Drawer(document.getElementsByClassName("mdui-drawer")[0]);
                         inst.toggle();
@@ -748,7 +766,8 @@ textarea{font-family: monospace !important;}
                     document.addEventListener("DOMContentLoaded", function () {
                         if (document.cookie.replace(/(?:(?:^|.*;\s*)theme\s*\=\s*([^;]*).*$)|^.*$/, "$1") == "dark"){
                             changetheme();
-                        }
+						}
+						setInterval(checklog, 1000);
                     });
                     function changevalue_switch(){
                         var val = event.target.checked+0;
@@ -767,6 +786,57 @@ textarea{font-family: monospace !important;}
 						document.getElementById(document.getElementsByClassName('mdui-typo-title')[0].innerHTML).classList.replace("mdui-not-hidden", "mdui-hidden");
 						document.getElementById(e).classList.replace("mdui-hidden", "mdui-not-hidden");
 						document.getElementsByClassName('mdui-typo-title')[0].innerHTML = e;
+					}
+					async function addlog(doReplay, module, str){
+						var newdivrow = document.createElement("div");
+						newdivrow.classList.add("mdui-card")
+						newdivrow.classList.add("mdui-hoverable")
+						if (doReplay){
+							var newdivcol = document.createElement("div")
+							newdivcol.classList.add("mdui-card-actions")
+							var but = document.createElement("button");
+							but.classList.add("mdui-btn");
+							but.classList.add("mdui-ripple");
+							but.classList.add("mdui-btn-raised")
+							but.classList.add("mdui-color-theme-accent");
+							but.innerText = "重放"
+							newdivcol.append(but)
+						}
+						var code = document.createElement("pre")
+						code.innerText = str.trim();
+						newdivrow.append(code);
+						if (doReplay){
+							newdivrow.append(newdivcol);
+						}
+						document.getElementById(module).getElementsByClassName("logcontainer")[0].prepend(newdivrow)
+						mdui.mutation();
+						await sleep(20);
+						newdivrow.classList.add("active");
+					}
+					var timestampflag_eye_to_eye = 0;
+					var timestampflag_log = 0;
+					var timestampall_requests = 0;
+					var timestampweb_log = 0;
+					async function checklog(){
+						var modulelist = ['flag_eye_to_eye', 'flag_log', 'all_requests', 'web_log'];
+						for (var co = 0 ;co<modulelist.length;co++){
+							var module = modulelist[co];
+							var doReplay = true;
+							if (!document.getElementById(module).querySelector("label").firstElementChild.checked){
+								continue;
+							}
+							if (module == "all_requests"){doReplay = false;}
+							await fetch("?watchbird=log&module="+module+"&timestamp="+eval('timestamp'+module))
+							.then(function(response) {
+								return response.json();
+							})
+							.then(function(myJson) {
+								for (var i = 0 ;i<myJson.length;i+=2){
+									addlog(doReplay, module, myJson[i]);
+									eval('timestamp' + module + "=" + myJson[myJson.length - 1]);
+								}
+							});
+						}
 					}
                 </script>
             </head>
@@ -823,40 +893,69 @@ HTML_CODE
 		print(<<<HTML_CODE
 		<div id="日志" class="mdui-container mdui-not-hidden doc-container mdui-row-xs-2 logger">
 			<div id="flag_eye_to_eye" class="mdui-shadow-5 mdui-col mdui-hoverable ">
-				<p style="width: 60%;display: inline-flex;">flag_eye_to_eye</p>
+				<p style="width: 60%;display: inline-flex;left: 20px;position: relative;">flag_eye_to_eye</p>
 				<label class="mdui-checkbox">
 					<input type="checkbox" checked />
 					<i class="mdui-checkbox-icon"></i>
 					自动更新
 				</label>
 				<div class="mdui-divider"></div>
+				<div class="mdui-container-fluid logcontainer">
+					<div class="mdui-card mdui-hoverable">
+						<pre>[16:56:18]GET /leo.php?1=whoami HTTP/1.1</pre>
+						<div class="mdui-card-actions">
+							<button class="mdui-btn mdui-ripple">action 1</button>
+							<button class="mdui-btn mdui-ripple">action 2</button>
+						</div>
+					</div>
+					<div class="mdui-card mdui-hoverable">
+						<pre>[16:56:18]GET /leo.php?1=whoami HTTP/1.1</pre>
+						<div class="mdui-card-actions">
+							<button class="mdui-btn mdui-ripple">action 1</button>
+							<button class="mdui-btn mdui-ripple">action 2</button>
+						</div>
+					</div>
+					<div class="mdui-card mdui-hoverable">
+						<pre>[16:56:18]GET /leo.php?1=whoami HTTP/1.1</pre>
+						<div class="mdui-card-actions">
+							<button class="mdui-btn mdui-ripple">action 1</button>
+							<button class="mdui-btn mdui-ripple">action 2</button>
+						</div>
+					</div>
+				</div>
 			</div>
 			<div id="flag_log" class="mdui-shadow-5 mdui-col mdui-hoverable ">
-				<p style="width: 60%;display: inline-flex;">flag_log</p>
+				<p style="width: 60%;display: inline-flex;left: 20px;position: relative;">flag_log</p>
 				<label class="mdui-checkbox"">
 					<input type="checkbox" checked />
 					<i class="mdui-checkbox-icon"></i>
 					自动更新
 				</label>
 				<div class="mdui-divider"></div>
+				<div class="mdui-container-fluid logcontainer">
+				</div>
 			</div>
 			<div id="all_requests" class="mdui-shadow-5 mdui-col mdui-hoverable ">
-				<p style="width: 60%;display: inline-flex;">all_requests</p>
+				<p style="width: 60%;display: inline-flex;left: 20px;position: relative;">all_requests</p>
 				<label class="mdui-checkbox">
 					<input type="checkbox" checked />
 					<i class="mdui-checkbox-icon"></i>
 					自动更新
 				</label>
 				<div class="mdui-divider"></div>
+				<div class="mdui-container-fluid logcontainer">
+				</div>
 			</div>
 			<div id="web_log" class="mdui-shadow-5 mdui-col mdui-hoverable ">
-				<p style="width: 60%;display: inline-flex;">web_log</p>
+				<p style="width: 60%;display: inline-flex;left: 20px;position: relative;">web_log</p>
 				<label class="mdui-checkbox">
 					<input type="checkbox" checked />
 					<i class="mdui-checkbox-icon"></i>
 					自动更新
 				</label>
 				<div class="mdui-divider"></div>
+				<div class="mdui-container-fluid logcontainer">
+				</div>
 			</div>
 HTML_CODE
 		);
