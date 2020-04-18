@@ -52,7 +52,7 @@ Lisence:
 
 $config_path = '/tmp/watchbird/watchbird.conf';
 // $level = 4;  // 0~4 等级越高,防护能力越强,默认为4
-error_reporting(E_ALL);
+error_reporting(0);
 
 
 function is_browser($v,$vv){
