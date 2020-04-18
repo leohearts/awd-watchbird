@@ -91,6 +91,13 @@ $allow_ddos_time = 3;  // 每秒最多10个访问
 // 	$waf_sql = 1;
 // 	$waf_special_char = 1;
 // }
+
+function is_browser($v,$vv){
+    return strstr($v, $vv);
+}
+
+
+
 function get_fake_flag(){
 	global $flag_path;
 	$flag = trim(file_get_contents($flag_path));
@@ -165,7 +172,7 @@ class configmanager
 	//名单配置
 	public $upload_whitelist = "/jpg|png|gif|txt/i";  // upload白名单
 	public $sql_blacklist = "/drop |dumpfile\b|INTO FILE|outfile\b|load_file|multipoint\(/i";
-	public $rce_blacklist = "/`|base64_encode|base64_decode|strrev|eval\(|assert\(|file_put_contents|fwrite|curl_exec\(|passthru\(|exec\(|dl\(|openlog|syslog|readlink|symlink|popepassthru|preg_replace|create_function|array_map|call_user_func|array_filter|usort|stream_socket_server|pcntl_exec|passthru|exec\(|system\(|chroot\(|scandir\(|chgrp\(|chown|shell_exec|proc_open|proc_get_status|popen\(|ini_alter|ini_restore|ini_set|_GET|_POST|_COOKIE|_FILE|i-ni_alter|ini_restore|ini_set|_GET|_POST|_COOKIE|_FILE/i";
+	public $rce_blacklist = "/`|var_dump|phpinfo|str_rot13|serialize|file|base64_encode|base64_decode|strrev|eval\(|assert\(|file_put_contents|fwrite|curl_exec\(|passthru\(|exec\(|dl\(|openlog|syslog|readlink|symlink|popepassthru|preg_replace|create_function|array_map|call_user_func|array_filter|usort|stream_socket_server|pcntl_exec|passthru|exec\(|system\(|chroot\(|scandir\(|chgrp\(|chown|shell_exec|proc_open|proc_get_status|popen\(|ini_alter|ini_restore|ini_set|_GET|_POST|_COOKIE|_FILE|i-ni_alter|ini_restore|ini_set|_GET|_POST|_COOKIE|_FILE/i";
 	function change($key, $val)
 	{
 		global $config_path;
@@ -308,14 +315,22 @@ function deldir($dir) {
 die并且输出logo
 */
 function logo(){
-	die("
-	__        ___  _____ ____ _   _ ____ ___ ____  ____  
-	\ \      / / \|_   _/ ___| | | | __ )_ _|  _ \|  _ \ 
+	$logo = <<<LOGO
+	__        ___  _____ ____ _   _ ____ ___ ____  ____
+	\ \      / / \|_   _/ ___| | | | __ )_ _|  _ \|  _ \
 	 \ \ /\ / / _ \ | || |   | |_| |  _ \| || |_) | | | |
 	  \ V  V / ___ \| || |___|  _  | |_) | ||  _ <| |_| |
-	   \_/\_/_/   \_\_| \____|_| |_|____/___|_| \_\____/ 
-														 
-");
+	   \_/\_/_/   \_\_| \____|_| |_|____/___|_| \_\____/
+
+LOGO;
+$UAs=array("MSIE", "Firefox", "Chrome", "Safari", "Opera");
+$UA=$_SERVER["HTTP_USER_AGENT"];
+if (count(array_filter(array_map("is_browser", array_fill(0, count($UAs), $UA), $UAs)))){
+$logo="<pre>\n".$logo."\n</pre>";
+$logo=str_replace("\r","", $logo);
+$logo=str_replace("\n","</br>", $logo);
+}
+die($logo);
 }
 
 
