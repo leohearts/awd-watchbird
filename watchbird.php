@@ -50,47 +50,10 @@ Lisence:
 */
 
 
-// 功能开启选项
-$flag_path = '/flag';  // 自己flag所在的路径
-$LDPRELOAD_PATH = '/var/www/html/waf.so';	//共享库路径
 $config_path = '/tmp/watchbird/watchbird.conf';
 // $level = 4;  // 0~4 等级越高,防护能力越强,默认为4
-error_reporting(0);
+error_reporting(E_ALL);
 
-// level处理
-$waf_headers = 0;  // headers防御
-$waf_ddos = 0;  // ddos防御
-$waf_upload = 0;  // 上传防御
-$waf_special_char = 0; // 特殊字符防御
-$waf_sql = 0;  // sql防御
-$waf_rce = 0;  // rce防御
-$waf_ldpreload = 0;	//基于LD_PRELOAD的rce防护
-$waf_lfi = 0;  // LFI/LFR 防御
-$waf_unserialize = 0; // phar反序列化防御
-$waf_flag = 0;  // getflag防御
-$flag_content_match = 0; // 匹配响应中有无flag特征
-$debug = 0;  // debug模式
-$allow_ddos_time = 3;  // 每秒最多10个访问 
-
-// if ($level >= 1){  // 开启upload,lfi防御
-// 	$waf_upload = 1;
-// 	$waf_lfi = 1;
-// } 
-// if ($level >= 2){  // 开启getflag,unserialize,rce防御
-// 	$waf_flag = 1;
-// 	$waf_unserialize = 1;
-// 	$waf_rce = 1;
-// 	$waf_ldpreload = 1;
-// } 
-// if ($level >= 3){  // 开启headers,ddos,深度检测防御
-// 	$waf_headers = 1;
-// 	$waf_ddos = 1;
-// 	$flag_content_match = 1;
-// }
-// if ($level == 4){  // 开启sql,special_char防御  
-// 	$waf_sql = 1;
-// 	$waf_special_char = 1;
-// }
 
 function is_browser($v,$vv){
     return strstr($v, $vv);
@@ -99,8 +62,8 @@ function is_browser($v,$vv){
 
 
 function get_fake_flag(){
-	global $flag_path;
-	$flag = trim(file_get_contents($flag_path));
+	global $config;
+	$flag = trim(file_get_contents($config->flag_path));
 	$str="QWERTYUIOPASDFGHJKLZXCVBNM1234567890qwertyuiopasdfghjklzxcvbnm";
 	str_shuffle($str);
 	$fake_flag='flag{'.substr(str_shuffle($str),0,strlen($flag)-6).'}';
@@ -108,9 +71,9 @@ function get_fake_flag(){
 }
 
 function get_preg_flag(){  // 获取自己flag的正则表达式并保存在文件里
-	global $flag_path;
+	global $config;
 	$result = '';
-	$flag = file_get_contents($flag_path);
+	$flag = file_get_contents($config->flag_path);
 	$flag = trim($flag);
 	if(strlen($flag) >= 18)
 	{
@@ -131,17 +94,9 @@ function get_preg_flag(){  // 获取自己flag的正则表达式并保存在文�
 }
 
 // 其他配置
-$waf_fake_flag = "";  // 虚假flag,需开启waf_flag
 $waf_fake_flag2 = get_fake_flag();  //	高级的虚假flag,用于当对面即将获得flag但是被深度检测拦截的时候
 // $content_disallow = "/".get_preg_flag(). "not_a_regular_exression/i"; //  一定要保证不和正常内容冲突
-$content_disallow = '/'.trim(file_get_contents($flag_path)).'/'; //  一定要保证不和正常内容冲突
-$remote_ip = "";	//	服务器ip
-$remote_port = 80;	//	服务器端口
-
-//名单配置
-$upload_whitelist="";  // upload白名单
-$sql_blacklist="";
-$rce_blacklist = "";
+$content_disallow = '/'.trim(file_get_contents($config->flag_path)).'/'; //  一定要保证不和正常内容冲突
 
 class configmanager
 {
@@ -169,6 +124,8 @@ class configmanager
 	public $waf_fake_flag = "flag{Longlone:W0r1<_HaRd3r}";  // 虚假flag,需开启waf_flag
 	public $remote_ip = "127.0.0.1";    //	服务器ip
 	public $remote_port = 80;    //	服务器端口
+
+	public $max_log_size = 80000;	//单个日志文件最大大小
 
 	//名单配置
 	public $upload_whitelist = "/jpg|png|gif|txt/i";  // upload白名单
@@ -206,20 +163,20 @@ class watchbird{
 // 自动部署构造方法
 function __construct(){
 	//echo $_SERVER['SERVER_PORT']."\n";
-	global $waf_upload, $allow_ddos_time, $waf_headers, $waf_ddos, $content_disallow, $flag_content_match, $waf_fake_flag2, $waf_ldpreload, $LDPRELOAD_PATH;
+	global $config, $content_disallow, $waf_fake_flag2;
 	$this->dir = '/tmp/watchbird/';
 	$this->logdir = $this->dir.'log/';
 	$this->uploaddir = $this->dir.'upload/';
 	$this->ipdir = $this->dir.'ip/';
-	if ($waf_ldpreload == 1) {
-		putenv("LD_PRELOAD=" . $LDPRELOAD_PATH);
+	if ($config->waf_ldpreload == 1) {
+		putenv("LD_PRELOAD=" . $config->LDPRELOAD_PATH);
 	}
 	$this->headers = getallheaders(); //获取header  
 	if(isset($_SERVER['HTTP_ISSELF'])){
 		return 0;
 	}
-	$this->allow_time = $allow_ddos_time;  // 获取每秒最大访问次数
-	if ($waf_ddos == true){
+	$this->allow_time = $config->allow_ddos_time;  // 获取每秒最大访问次数
+	if ($config->waf_ddos == true){
 		$this->watch_ddos();
 	}
 	$this->e_mkdir($this->dir);
@@ -228,13 +185,13 @@ function __construct(){
 	$this->e_mkdir($this->ipdir);
 	$this->request_url = $this->filter_0x25(urldecode($_SERVER['REQUEST_URI'])); //	获取url来进行检测
 	$this->request_data = file_get_contents('php://input');	//	获取post
-	if ($waf_headers == true)
+	if ($config->waf_headers == true)
 	{   
 		$this->watch_headers();  // 监测headers
 	}
 	$this->write_access_log_probably();  //	记录访问纪录, 类似于日志
 	$this->write_access_logs_detailed();  //	记录详细访问请求包  
-	if ($waf_upload==true) {
+	if ($config->waf_upload==true) {
 		$this->watch_upload();  // 记录上传纪录
 	}
 	if($_SERVER['REQUEST_METHOD'] != 'POST' && $_SERVER['REQUEST_METHOD'] != 'GET'){
@@ -250,7 +207,7 @@ function __construct(){
 			$this->watch_attack_keyword($this->watch_special_char($keywords)); 
 		}
 	}
-	if ($flag_content_match){   //	深度检测响应包
+	if ($config->flag_content_match){   //	深度检测响应包
 		$this->getcont();  // 开始自检
 		if (preg_match($content_disallow, $this->response_content)!==0){
 				$this->write_flag_log();
@@ -367,9 +324,9 @@ function watch_ddos(){
 监测headers
 */
 function watch_headers(){
-	global $sql_blacklist, $rce_blacklist;
+	global $config;
 	foreach($this->headers as $k=>$v) {
-		if (preg_match($sql_blacklist, urldecode($v)) || preg_match($rce_blacklist, urldecode($v))) {
+		if (preg_match($config->sql_blacklist, urldecode($v)) || preg_match($config->rce_blacklist, urldecode($v))) {
 			$this->headers[$k] = '';
 			// $URI = explode('?',$this->request_url);
 			// header('Location: http://'.$_SERVER['SERVER_NAME'].':'.$_SERVER["SERVER_PORT"].$URI[0]);
@@ -383,7 +340,7 @@ function watch_headers(){
 监测不可见字符造成的截断和绕过效果，注意网站请求带中文需要简单修改
 */
 function watch_special_char($str){
-	global $waf_special_char;
+	global $config;
 	$txt = '';
 	for($i=0;$i<strlen($str);$i++){
 		$ascii = ord($str[$i]);
@@ -404,7 +361,7 @@ function watch_special_char($str){
 	if ($txt != '')
 	{
 		$this->write_attack_log($txt);
-		if($waf_special_char == true){
+		if($config->waf_special_char == true){
 			$this->logo();
 		}
 	}
@@ -414,13 +371,13 @@ function watch_special_char($str){
 监测文件上传
 */
 function watch_upload(){
-	global $upload_whitelist;
+	global $config;
 	foreach ($_FILES as $key => $value) {
 		if($_FILES[$key]['error'] == 0){
 			$ext = substr(strrchr($_FILES[$key]["name"], '.'), 1);
 			$this->write_attack_log("Catch attack: < Evil Upload, please check ".$this->uploaddir." dir > ");
 			copy($_FILES[$key]["tmp_name"], $this->uploaddir.date("d_H_i_s").'.'.$ext.'.txt');
-			if(!preg_match($upload_whitelist, $ext))
+			if(!preg_match($config->upload_whitelist, $ext))
 			{
 				unlink($_FILES[$key]['tmp_name']);
 				echo 'Upload success! Check upload/'.substr(md5($_FILES[$key]["name"]), 0, rand(10, 30)).'.'.$ext;
@@ -455,10 +412,10 @@ function filter_0x25($str){
 监测攻击关键字
 */
 function watch_attack_keyword($str){
-	global $sql_blacklist, $rce_blacklist, $waf_sql, $waf_lfi, $waf_rce, $waf_unserialize, $waf_flag, $waf_fake_flag;
-	if(preg_match($sql_blacklist, $str)){
+	global $config;
+	if(preg_match($config->sql_blacklist, $str)){
 		$this->write_attack_log("Catch attack: < SQLI > ");
-		if($waf_sql == true){
+		if($config->waf_sql == true){
 			$this->logo();
 		}
 	}
@@ -466,32 +423,32 @@ function watch_attack_keyword($str){
 		$tmp = str_replace($_SERVER['PHP_SELF'], "", $str);
 		if(preg_match("/\.\.|.*\.php[2357]{0,1}|\.phtml/i", $tmp)){ 
 			$this->write_attack_log("Catch attack: < LFI/LFR > ");
-			if($waf_lfi == true){
+			if($config->waf_lfi == true){
 				$this->logo();
 			}
 		}
 	}else{
 		$this->write_attack_log("Catch attack: < LFI/LFR > ");
-		if($waf_lfi == true){
+		if($config->waf_lfi == true){
 			$this->logo();
 		}
 	}
-	if(preg_match($rce_blacklist, $str)){
+	if(preg_match($config->rce_blacklist, $str)){
 		$this->write_attack_log("Catch attack: < RCE > ");
-		if($waf_rce == true){
+		if($config->waf_rce == true){
 			$this->logo();
 		}
 	}
 	if(preg_match("/phar|zip|compress.bzip2|compress.zlib/i", $str)){
 		$this->write_attack_log("Catch attack: < phar unserialize >");
-		if($waf_unserialize == true){
+		if($config->waf_unserialize == true){
 			$this->logo();
 		}
 	}
 	if(preg_match("/flag/i", $str)){
 		$this->write_attack_log("Catch attack: < !!GETFLAG!! >");
-		if($waf_flag == true){
-			die($waf_fake_flag);
+		if($config->waf_flag == true){
+			die($config->waf_fake_flag);
 		}
 	}
 }
@@ -557,7 +514,7 @@ function write_attack_log($alert){
 将流量发送到本地服务器进行自检
 */
 function getcont(){
-	global $debug, $remote_ip, $remote_port;
+	global $config;
 	$headerstr = "";
 	$this->response_content = "";
 	$this->headers['isself'] = "true";
@@ -566,7 +523,7 @@ function getcont(){
 	foreach($this->headers as $k => $v) {
 		$headerstr .= $k . ': ' . $v . "\r\n";
 	}
-	$fp = fsockopen($remote_ip, $remote_port, $errno, $errstr, 30);
+	$fp = fsockopen($config->remote_ip, $config->remote_port, $errno, $errstr, 30);
 	if (!$fp) {
 			echo "500 Internal Server Error.";
 	}
@@ -585,7 +542,7 @@ function getcont(){
 			$this->response_content .= $tmp3;
 		}
 		fclose($fp);
-		if ($debug){
+		if ($config->debug){
 			echo $out;
 			echo $this->response_content;
 		}
@@ -1053,8 +1010,14 @@ HTML_CODE
 );
 	}
 	function showlog(){
+		global $config;
 		$module = $_GET['module'];
-		$log = file_get_contents("/tmp/watchbird/log/".$module.".txt");
+		$logpath_curr = "/tmp/watchbird/log/" . $module . ".txt";
+		clearstatcache();
+		if (filesize($logpath_curr) > $config->max_log_size){
+			unlink($logpath_curr);
+		}
+		$log = file_get_contents($logpath_curr);
 		$resp = array();
 		$rawlog = explode('a2f5464863e4ef86d07b7bd89e815407fbfaa912', $log);
 		for ($i = sizeof($rawlog) - 2;$i>0;$i-=2){
@@ -1069,7 +1032,9 @@ HTML_CODE
 		die(json_encode(array_reverse($resp)));
 	}
 }
-
+if (is_dir(dirname($config_path)) == false) {
+	mkdir(dirname($config_path), 0777, true);
+}	
 if (!file_exists($config_path)) {
 	file_put_contents($config_path, serialize(new configmanager()));
 }
