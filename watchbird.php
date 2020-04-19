@@ -864,6 +864,8 @@ pre{
 						}).then(function(resp) {
 							var newcard = document.createElement("div");
 							newcard.classList.add("mdui-card");
+							newcard.style.maxHeight = 600;
+							newcard.style.overflow = "scroll";
 							var newcard_primary = document.createElement("div");
 							newcard_primary.classList.add("mdui-card-primary");
 							var subtitle = document.createElement("div");
@@ -898,6 +900,11 @@ pre{
 						document.getElementsByClassName("repeater")[0].style.maxWidth = "100%";
 						document.getElementsByClassName("repeater")[0].classList.add("mdui-row-xs-2")
 						document.getElementsByClassName("responsebox")[0].style.display = "block";
+						document.getElementsByClassName("responsebox")[0].prepend(document.createElement("br"));
+						var newdelimiter = document.createElement("div");
+						newdelimiter.classList.add("mdui-divider");
+						document.getElementsByClassName("responsebox")[0].prepend(newdelimiter);
+						document.getElementsByClassName("responsebox")[0].prepend(document.createElement("br"));
 						var domInputNodes = document.getElementsByClassName("dest-selector-multi");
 						var ip_part1_start = domInputNodes[0].querySelectorAll("input")[0].value - 0;
 						var ip_part1_end = domInputNodes[0].querySelectorAll("input")[1].value - 0;
