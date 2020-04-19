@@ -172,7 +172,7 @@ function __construct(){
 	$this->headers = getallheaders(); //获取header  
 	$this->timestamp = getMillisecond();
 	if ($config->open_basedir !== '/') {
-		ini_set("open_basedir", $config->open_basedir . ':' . $this->dir);
+		ini_set("open_basedir", $config->open_basedir . ':/tmp/');
 	}
 	if(isset($_SERVER['HTTP_ISSELF'])){
 		putenv("php_timestamp=".$_SERVER['HTTP_WATCHBIRDTIMESTAMP']);
@@ -836,6 +836,7 @@ pre{
 						var text = event.target.parentElement.previousElementSibling.innerText;
 						document.getElementsByClassName("repeater")[0].getElementsByClassName("header-field")[0].innerHTML = "";
 						text = parseRequest(text);
+						document.getElementById("myhost").value = text.match(new RegExp("host: {0,}[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}", 'i'))[0].match(new RegExp("[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}"))[0];
 						var postdata = "undefined";
 						var text_search_nn = text.search("\\n\\n");
 						if (text_search_nn != -1){
@@ -860,6 +861,28 @@ pre{
 						inst.open();
 					}
 					async function sendSinglePacket(ip, port, packet){
+						if (document.getElementById("passhost").checked && (ip+":"+port == document.getElementById("myhost").value ||( ip == document.getElementById("myhost").value && port == 80))){
+							var newcard = document.createElement("div");
+							newcard.classList.add("mdui-card");
+							newcard.style.maxHeight = 600;
+							newcard.style.overflow = "scroll";
+							var newcard_primary = document.createElement("div");
+							newcard_primary.classList.add("mdui-card-primary");
+							var subtitle = document.createElement("div");
+							subtitle.classList.add("mdui-card-primary-subtitle");
+							subtitle.innerHTML = ip+":"+port;
+							newcard_primary.append(subtitle);
+							var cardcontent = document.createElement("div");
+							cardcontent.classList.add("mdui-card-content");
+							cardcontent.innerText = "已跳过当前主机";
+							newcard.append(newcard_primary);
+							newcard.append(cardcontent);
+							document.getElementsByClassName("responsebox")[0].prepend(newcard);
+							return;
+						}
+						if (document.getElementById("modifyHost").checked){
+							packet = packet.replace(new RegExp('host: {0,}[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}', 'i'), 'Host: '+ip+":"+port);
+						}
 						await fetch("?watchbird=replay&ip="+ip+"&port="+port, {
 							body: packet,
 							method: 'POST',
@@ -878,6 +901,9 @@ pre{
 							newcard_primary.append(subtitle);
 							var cardcontent = document.createElement("div");
 							cardcontent.classList.add("mdui-card-content");
+							if (resp.trim() == ""){
+								resp = "服务器无响应";
+							}
 							cardcontent.innerText = resp;
 							newcard.append(newcard_primary);
 							newcard.append(cardcontent);
@@ -1156,7 +1182,23 @@ HTML_CODE
 		<div id="repeater" class="mdui-dialog repeater">
 			<div class="mdui-dialog-content mdui-col">
 				<div class="mdui-dialog-title mdui-row">
-					<div class="mdui-col-xs-10">重放</div>
+					<div class="mdui-col-xs-4">重放</div>
+					<div class="mdui-col-xs-6 mdui-row" style="height: 10px;">
+						<label class="mdui-col-xs-4 mdui-checkbox">
+							<input id="modifyHost" type="checkbox" checked/>
+							<i class="mdui-checkbox-icon"></i>
+							<small style="margin-left: 15px;" class="mdui-textfield-label">修改Host头</small>
+						</label>
+						
+						<label class="mdui-col-xs-1 mdui-checkbox">
+							<input id="passhost" type="checkbox"/>
+							<i class="mdui-checkbox-icon"></i>
+						</label>
+						<div class="mdui-col-xs-6 mdui-textfield" style="padding: 0;margin-top: -10px;">
+							<label class="mdui-textfield-label">跳过该Host</label>
+							<input id="myhost" class="mdui-textfield-input" type="text" style="height: 30px;"/>
+						</div>
+					</div>
 					<button onclick="replaypacket();" class="mdui-btn mdui-btn-raised mdui-ripple mdui-col-xs-1 mdui-color-theme-accent">Go!</button>
 				</div>
 				<div class="dest-selector mdui-row" style="text-align:center">
@@ -1379,6 +1421,8 @@ if ($_GET['watchbird'] === 'replay'){
 	ob_end_clean();
 	set_time_limit(3);
 	$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+	socket_set_option($socket,SOL_SOCKET,SO_RCVTIMEO,array("sec"=> 3, "usec"=> 0 ) ); // 接收
+	socket_set_option($socket,SOL_SOCKET,SO_SNDTIMEO,array("sec"=> 3, "usec"=> 0 ) ); // 发送 
 	socket_connect($socket, $_GET['ip'], intval($_GET['port']));
 	$packet = file_get_contents("php://input");
 	socket_write($socket, $packet, strlen($packet));
