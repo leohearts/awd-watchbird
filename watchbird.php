@@ -511,7 +511,7 @@ function write_attack_log($alert){
 		$tmp .= $k . ': ' . $v . "\n";
 	}
 	if (!empty($this->request_data)) {
-		$tmp .= "n". $this->request_data . "\n";
+		$tmp .= "\n". $this->request_data . "\n";
 	}
 	file_put_contents($this->logdir.'under_attack_log.txt', $tmp, FILE_APPEND | LOCK_EX);
 	if ($alert == 'Catch attack: < !!GETFLAG!! >')  // 顺便写入另外一个日志
@@ -1103,7 +1103,7 @@ pre{
                         <div class="mdui-list-item-content">配置</div>
                     </a>
                     <a onclick="showmodule('日志');" class="mdui-list-item mdui-ripple ">
-                        <i class="mdui-list-item-icon mdui-icon material-icons">send</i>
+                        <i class="mdui-list-item-icon mdui-icon material-icons">library_books</i>
                         <div class="mdui-list-item-content">日志</div>
 					</a>
 					<a mdui-dialog="{target: '#repeater'}" class="mdui-list-item mdui-ripple">
