@@ -276,6 +276,7 @@ function deldir($dir) {
 die并且输出logo
 */
 function logo(){
+	global $config;
 	$logo = <<<LOGO
 	__        ___  _____ ____ _   _ ____ ___ ____  ____
 	\ \      / / \|_   _/ ___| | | | __ )_ _|  _ \|  _ \
@@ -291,7 +292,11 @@ $logo="<pre>\n".$logo."\n</pre>";
 $logo=str_replace("\r","", $logo);
 $logo=str_replace("\n","</br>", $logo);
 }
-die($logo);
+echo $logo;
+if ($config->debug){
+	echo debug_backtrace()[1]['function'];
+}
+die();
 }
 
 
