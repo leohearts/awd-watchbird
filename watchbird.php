@@ -121,7 +121,7 @@ class configmanager
 	public $remote_ip = "127.0.0.1";    //	服务器ip
 	public $remote_port = 80;    //	服务器端口
 
-	public $max_log_size = 80000;	//单个日志文件最大大小
+	public $max_log_size = 40000;	//单个日志文件最大大小
 
 	//名单配置
 	public $upload_whitelist = "/jpg|png|gif|txt/i";  // upload白名单
