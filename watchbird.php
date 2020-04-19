@@ -152,6 +152,7 @@ class watchbird{
 	private $uploaddir;
 	private $allow_time;
 	private $response_content;
+	private $timestamp;
 	/*
 	watchbird类
 	*/
@@ -168,8 +169,13 @@ function __construct(){
 		putenv("LD_PRELOAD=" . $config->LDPRELOAD_PATH);
 	}
 	$this->headers = getallheaders(); //获取header  
+	$this->timestamp = getMillisecond();
 	if(isset($_SERVER['HTTP_ISSELF'])){
+		putenv("php_timestamp=".$_SERVER['HTTP_WATCHBIRDTIMESTAMP']);
 		return 0;
+	}
+	else{
+		putenv("php_timestamp=" . $this->timestamp);
 	}
 	$this->allow_time = $config->allow_ddos_time;  // 获取每秒最大访问次数
 	if ($config->waf_ddos == true){
@@ -453,7 +459,7 @@ function watch_attack_keyword($str){
 
 //	记录每次大概访问记录，类似日志，以便在详细记录中查找
 function write_access_log_probably() { 
-	$tmp = sha1("Syclover").time().sha1("Syclover");
+	$tmp = sha1("Syclover").$this->timestamp.sha1("Syclover");
 	$tmp .= "[" . date('H:i:s') . "]" . $_SERVER['REQUEST_METHOD'].' '.$this->request_url.' '.$_SERVER['SERVER_PROTOCOL'];
 	if (!empty($this->request_data)){
 		$tmp .= "\n".$this->request_data; 
@@ -464,7 +470,7 @@ function write_access_log_probably() {
 
 //	记录详细的访问头记录，包括GET POST http头, 以获取waf未检测到的攻击payload
 function write_access_logs_detailed(){
-	$tmp = sha1("Syclover").time(). sha1("Syclover");
+	$tmp = sha1("Syclover"). $this->timestamp. sha1("Syclover");
 	$tmp .= "[" . date('H:i:s') . "]\n";
 	$tmp .= "SRC IP: " . $_SERVER["REMOTE_ADDR"]."\n";
 	$tmp .= $_SERVER['REQUEST_METHOD'].' '.$this->request_url.' '.$_SERVER['SERVER_PROTOCOL']."\n"; 
@@ -485,7 +491,7 @@ function write_access_logs_detailed(){
 记录攻击payload 第一个参数为记录类型  使用时直接调用函数
 */
 function write_attack_log($alert){
-	$tmp = sha1("Syclover").time(). sha1("Syclover");
+	$tmp = sha1("Syclover").$this->timestamp. sha1("Syclover");
 	$tmp .= "[" . date('H:i:s') . "] {".$alert."}\n";
 	$tmp .= "SRC IP: " . $_SERVER["REMOTE_ADDR"]."\n";
 	$tmp .= $_SERVER['REQUEST_METHOD'].' '.$this->request_url.' '.$_SERVER['SERVER_PROTOCOL']."\n"; 
@@ -515,6 +521,7 @@ function getcont(){
 	$headerstr = "";
 	$this->response_content = "";
 	$this->headers['isself'] = "true";
+	$this->headers['watchbirdtimestamp'] = $this->timestamp;
 	$this->headers['Connection'] = "Close";
 	$this->headers["Accept-Encoding"] = "*/*";
 	foreach($this->headers as $k => $v) {
@@ -550,7 +557,7 @@ function getcont(){
 当响应包中存在flag时写入日志
 */
 function write_flag_log(){
-	$tmp = sha1("Syclover").time().sha1("Syclover");
+	$tmp = sha1("Syclover").$this->timestamp.sha1("Syclover");
 	$tmp .= "[" . date('H:i:s') . "] \n";
 	$tmp .= "\nRequest:\n";
 	$tmp .= "SRC IP: " . $_SERVER["REMOTE_ADDR"]."\n";
@@ -570,7 +577,10 @@ function write_flag_log(){
 }
 
 }
-
+function getMillisecond(){
+	list($s1,$s2)=explode(' ',microtime());
+	return (float)sprintf('%.0f',(floatval($s1)+floatval($s2))*1000);
+}
 // 还原 rfc1867, rfc2046 格式的FormData, 来自https://blog.izgq.net/archives/1029/
 function getFormData(){
 	// body-part array
@@ -806,7 +816,7 @@ pre{
 						document.getElementById(e).classList.replace("mdui-hidden", "mdui-not-hidden");
 						document.getElementsByClassName('mdui-typo-title')[0].innerHTML = e;
 					}
-					async function addlog(doReplay, module, str){
+					async function addlog(doReplay, module, str, id){
 						if (module == 'flag_log' && timestampflag_log > 0){
 							Notification.requestPermission().then(function (permission) {
 								if (permission === 'granted') {
@@ -819,7 +829,30 @@ pre{
 								}
 							});
 						}
+						if (module == "rce_log"){
+							if (timestamprce_log > 0){
+								Notification.requestPermission().then(function (permission) {
+									if (permission === 'granted') {
+										var n = new Notification('RCE防护拦截了一次有效攻击', {
+											body: '查看rce_log以获取详细信息',
+											icon: '?watchbird=resource&resource=logo'
+										});
+									} else if (permission === 'denied') {
+										console.log('用户拒绝通知');
+									}
+								});
+							}
+							var cpydiv = document.getElementById("web_log" + id).cloneNode(true);
+							cpydiv.id = module + id;
+							cpydiv.classList.remove("active");
+							document.getElementById(module).getElementsByClassName("logcontainer")[0].prepend(cpydiv)
+							mdui.mutation();
+							await sleep(20);
+							cpydiv.classList.add("active");
+							return;
+						}
 						var newdivrow = document.createElement("div");
+						newdivrow.id = module+id;
 						newdivrow.classList.add("mdui-card")
 						newdivrow.classList.add("mdui-hoverable")
 						if (doReplay){
@@ -847,10 +880,11 @@ pre{
 					var timestampflag_eye_to_eye = 0;
 					var timestampflag_log = 0;
 					var timestampall_requests = 0;
+					var timestamprce_log = 0;
 					var timestampweb_log = 0;
 
 					async function checklog(){
-						var modulelist = ['flag_eye_to_eye', 'flag_log', 'all_requests', 'web_log'];
+						var modulelist = ['web_log', 'rce_log', 'flag_eye_to_eye', 'flag_log'];
 						for (var co = 0 ;co<modulelist.length;co++){
 							var module = modulelist[co];
 							var doReplay = true;
@@ -862,9 +896,12 @@ pre{
 							.then(function(response) {
 								return response.json();
 							})
-							.then(function(myJson) {
+							.then(async function(myJson) {
 								for (var i = 0 ;i<myJson.length;i+=2){
-									addlog(doReplay, module, myJson[i]);
+									try{
+										await addlog(doReplay, module, myJson[i], myJson[i+1]);
+									}
+									catch{};
 								}
 								if (myJson.length > 1){
 									eval('timestamp' + module + "=" + myJson[myJson.length - 1]);
@@ -969,8 +1006,8 @@ HTML_CODE
 				<div class="mdui-container-fluid logcontainer">
 				</div>
 			</div>
-			<div id="all_requests" class="mdui-shadow-5 mdui-col mdui-hoverable ">
-				<p style="width: 60%;display: inline-flex;left: 20px;position: relative;">all_requests</p>
+			<div id="rce_log" class="mdui-shadow-5 mdui-col mdui-hoverable ">
+				<p style="width: 60%;display: inline-flex;left: 20px;position: relative;">rce_log</p>
 				<label class="mdui-checkbox">
 					<input type="checkbox" checked />
 					<i class="mdui-checkbox-icon"></i>
