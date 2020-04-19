@@ -881,7 +881,13 @@ pre{
 							return;
 						}
 						if (document.getElementById("modifyHost").checked){
-							packet = packet.replace(new RegExp('host: {0,}[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}', 'i'), 'Host: '+ip+":"+port);
+							if (packet.search(new RegExp('host: {0,}[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}:[0-9]{1,5}', 'i') != -1)){
+								packet = packet.replace(new RegExp('host: {0,}[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}:[0-9]{1,5}', 'i'), 'Host: '+ip+":"+port);
+							}
+							else{
+								packet = packet.replace(new RegExp('host: {0,}[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}', 'i'), 'Host: '+ip+":"+port);
+							}
+							console.log(packet);
 						}
 						await fetch("?watchbird=replay&ip="+ip+"&port="+port, {
 							body: packet,
@@ -921,6 +927,7 @@ pre{
 							// it is a POST packet
 							packet += "\\r\\n";
 							packet += document.getElementsByClassName("header-field")[0].childNodes[listcount - 1].lastElementChild.value;
+							packet = packet.replace(new RegExp("Content-Length: [0-9]{1,}", 'i'), "Content-length: "+document.getElementsByClassName("header-field")[0].childNodes[listcount - 1].lastElementChild.value.length);
 						}
 						else{
 							packet += document.getElementsByClassName("header-field")[0].childNodes[listcount - 1].lastElementChild.value;
