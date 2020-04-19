@@ -113,7 +113,7 @@ class configmanager
 	public $waf_lfi = 1;  // LFI/LFR 防御
 	public $waf_unserialize = 1; // phar反序列化防御
 	public $waf_flag = 1;  // getflag防御
-	public $flag_content_match = 1; // 匹配响应中有无flag特征
+	public $response_content_match = 1; // 匹配响应中有无flag特征
 	public $debug = 0;  // debug模式
 	public $allow_ddos_time = 3;  // 每秒最多10个访问 
 
@@ -209,7 +209,7 @@ function __construct(){
 			$this->watch_attack_keyword($this->watch_special_char($keywords)); 
 		}
 	}
-	if ($config->flag_content_match){   //	深度检测响应包
+	if ($config->response_content_match){   //	深度检测响应包
 		ob_end_clean();	// 处理BOM头
 		$this->getcont();  // 开始自检
 		if (preg_match($content_disallow, $this->response_content)!==0){
