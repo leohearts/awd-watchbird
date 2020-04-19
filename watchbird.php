@@ -229,16 +229,20 @@ function __construct(){
 			}
 			header("Content-Encoding: identity");
 			header("Transfer-Encoding: identity");
-			// if (preg_match("/^[0-9, a-z]{5}/", $co)) {
-			// 	$co = substr($co, 5);
-			// }
-			// if (preg_match("/^[0-9, a-z]{4}/",$co)){
-			// 	$co=substr($co,4);
-			// }
-			// if (substr($co,-7)=="\r\n0\r\n\r\n"){
-			// 	$co=rtrim($co,"\r\n0\r\n\r\n");
-			// 	$co .= "\r\n\r\n";
-			// }
+			if (preg_match("/^[0-9,a-z]{4}/",$co)){
+				$co=substr($co,4);
+			}
+			if (preg_match("/^[0-9,a-z]{5}/", $co)) {
+				$co = substr($co, 5);
+			}
+			$co=substr($co,strpos($co,pack("CCC",0xef,0xbb,0xbf)));  // 处理BOM头
+			if (substr($co,0,3) == pack("CCC",0xef,0xbb,0xbf)){
+				$co=substr($co,3);
+			}
+			if (substr($co,-7)=="\r\n0\r\n\r\n"){
+				$co=rtrim($co,"\r\n0\r\n\r\n");
+				$co .= "\r\n\r\n";
+			}
 			die($co);  // 将内容返回给用户
 		}
 	}
@@ -531,7 +535,7 @@ function getcont(){
 	$this->headers['isself'] = "true";
 	$this->headers['watchbirdtimestamp'] = $this->timestamp;
 	$this->headers['Connection'] = "Close";
-	// $this->headers["Accept-Encoding"] = "identity";
+	$this->headers["Accept-Encoding"] = "*/*";
 	foreach($this->headers as $k => $v) {
 		$headerstr .= $k . ': ' . $v . "\r\n";
 	}
