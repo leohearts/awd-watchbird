@@ -803,8 +803,124 @@ pre{
                     });
 					async function startDaemon(){
 						while(1){
-							await checklog();
+							try{
+								await checklog();
+							}
+							catch{continue;}
 							await sleep(1000);
+						}
+					}
+					function parseRequest(text){
+						text = text.substring(text.search("SRC IP"));
+						text = text.substring(text.search("\\n")).trim();
+						if (text.search("\\n\\nResponse") != -1){
+						 	text = text.substring(0, text.search("\\n\\nResponse"));	//Dont forget that you're in PHP!
+						}
+						return text;
+					}
+					function addlistitem(str){
+						var newtextfield = document.createElement("div");
+						newtextfield.classList.add("mdui-textfield");
+						var textInput = document.createElement("textarea");
+						textInput.classList.add("mdui-textfield-input");
+						textInput.value = str;
+						textInput.spellcheck = false;
+						newtextfield.append(textInput);
+						document.getElementsByClassName("repeater")[0].getElementsByClassName("header-field")[0].append(newtextfield);
+					}
+					function handle_replay(){
+						var text = event.target.parentElement.previousElementSibling.innerText;
+						document.getElementsByClassName("repeater")[0].getElementsByClassName("header-field")[0].innerHTML = "";
+						text = parseRequest(text);
+						var postdata = "undefined";
+						var text_search_nn = text.search("\\n\\n");
+						if (text_search_nn != -1){
+							postdata = text.substring(text_search_nn+2);
+							console.log(text)
+							console.log(text_search_nn);
+							console.log(postdata)
+							text = text.substring(0, text_search_nn);
+						}
+						var queryList = text.split("\\n");
+						for (var i = 0;i < queryList.length;i++){
+							addlistitem(queryList[i]);
+						}
+						if (postdata != "undefined"){
+							addlistitem(postdata);
+							var newlabel = document.createElement("label");
+							newlabel.classList.add("mdui-textfield-label");
+							newlabel.innerText = "POST data";
+							document.getElementsByClassName("repeater")[0].getElementsByClassName("header-field")[0].lastElementChild.prepend(newlabel);
+						}
+						var inst = new mdui.Dialog(document.getElementsByClassName("repeater")[0]);
+						inst.open();
+					}
+					async function sendSinglePacket(ip, port, packet){
+						await fetch("?watchbird=replay&ip="+ip+"&port="+port, {
+							body: packet,
+							method: 'POST',
+						}).then(function(response) {
+							return response.text();
+						}).then(function(resp) {
+							var newcard = document.createElement("div");
+							newcard.classList.add("mdui-card");
+							var newcard_primary = document.createElement("div");
+							newcard_primary.classList.add("mdui-card-primary");
+							var subtitle = document.createElement("div");
+							subtitle.classList.add("mdui-card-primary-subtitle");
+							subtitle.innerHTML = ip+":"+port;
+							newcard_primary.append(subtitle);
+							var cardcontent = document.createElement("div");
+							cardcontent.classList.add("mdui-card-content");
+							cardcontent.innerText = resp;
+							newcard.append(newcard_primary);
+							newcard.append(cardcontent);
+							document.getElementsByClassName("responsebox")[0].prepend(newcard);
+						});
+					}
+					async function replaypacket(){
+						var packet = "";
+						var listcount = document.getElementsByClassName("header-field")[0].childElementCount;
+						for (var i = 0;i < listcount - 1;i++){
+							packet += document.getElementsByClassName("header-field")[0].childNodes[i].lastElementChild.value;
+							packet += "\\r\\n";
+						}
+						if (document.getElementsByClassName("header-field")[0].childNodes[listcount-1].childElementCount > 1){
+							// it is a POST packet
+							packet += "\\r\\n";
+							packet += document.getElementsByClassName("header-field")[0].childNodes[listcount - 1].lastElementChild.value;
+						}
+						else{
+							packet += document.getElementsByClassName("header-field")[0].childNodes[listcount - 1].lastElementChild.value;
+							packet += "\\r\\n\\r\\n";
+						}
+						document.getElementsByClassName("repeater")[0].style.width = 1500;
+						document.getElementsByClassName("repeater")[0].style.maxWidth = "100%";
+						document.getElementsByClassName("repeater")[0].classList.add("mdui-row-xs-2")
+						document.getElementsByClassName("responsebox")[0].style.display = "block";
+						var domInputNodes = document.getElementsByClassName("dest-selector-multi");
+						var ip_part1_start = domInputNodes[0].querySelectorAll("input")[0].value - 0;
+						var ip_part1_end = domInputNodes[0].querySelectorAll("input")[1].value - 0;
+						var ip_part2_start = domInputNodes[1].querySelectorAll("input")[0].value - 0;
+						var ip_part2_end = domInputNodes[1].querySelectorAll("input")[1].value - 0;
+						var ip_part3_start = domInputNodes[2].querySelectorAll("input")[0].value - 0;
+						var ip_part3_end = domInputNodes[2].querySelectorAll("input")[1].value - 0;
+						var ip_part4_start = domInputNodes[3].querySelectorAll("input")[0].value - 0;
+						var ip_part4_end = domInputNodes[3].querySelectorAll("input")[1].value - 0;
+						var ipstep = domInputNodes[5].querySelectorAll("input")[0].value - 0;
+						var port_start = domInputNodes[8].querySelectorAll("input")[0].value - 0;
+						var port_end = domInputNodes[8].querySelectorAll("input")[1].value - 0;
+						var port_step = domInputNodes[10].querySelectorAll("input")[0].value - 0;
+						for (var i = ip_part1_start;i<=ip_part1_end;i+=ipstep){
+							for (var j = ip_part2_start;j<=ip_part2_end;j+=ipstep){
+								for (var k = ip_part3_start;k<=ip_part3_end;k+=ipstep){
+									for (var l = ip_part4_start;l<=ip_part4_end;l+=ipstep){
+										for (var m = port_start;m<=port_end;m+=port_step){
+											await sendSinglePacket(i.toString()+'.'+j+'.'+k+'.'+l, m, packet);
+										}
+									}
+								}
+							}
 						}
 					}
                     function changevalue_switch(){
@@ -854,7 +970,8 @@ pre{
 							var cpydiv = document.getElementById("web_log" + id).cloneNode(true);
 							cpydiv.id = module + id;
 							cpydiv.classList.remove("active");
-							document.getElementById(module).getElementsByClassName("logcontainer")[0].prepend(cpydiv)
+							cpydiv.querySelector("button").onclick = function () { handle_replay(); }
+							document.getElementById(module).getElementsByClassName("logcontainer")[0].prepend(cpydiv);
 							mdui.mutation();
 							await sleep(20);
 							cpydiv.classList.add("active");
@@ -872,6 +989,7 @@ pre{
 							but.classList.add("mdui-ripple");
 							but.classList.add("mdui-btn-raised")
 							but.classList.add("mdui-color-theme-accent");
+							but.onclick = function(){handle_replay();}
 							but.innerText = "重放"
 							newdivcol.append(but)
 						}
@@ -940,6 +1058,10 @@ pre{
                     <a onclick="showmodule('日志');" class="mdui-list-item mdui-ripple ">
                         <i class="mdui-list-item-icon mdui-icon material-icons">send</i>
                         <div class="mdui-list-item-content">日志</div>
+					</a>
+					<a mdui-dialog="{target: '#repeater'}" class="mdui-list-item mdui-ripple">
+                        <i class="mdui-list-item-icon mdui-icon material-icons">send</i>
+                        <div class="mdui-list-item-content">重放</div>
                     </a>
                 </div>
                 <div id="配置" class="mdui-container mdui-not-hidden doc-container">
@@ -1016,9 +1138,80 @@ HTML_CODE
 				<div class="mdui-container-fluid logcontainer">
 				</div>
 			</div>
+		</div>
+		<div id="repeater" class="mdui-dialog repeater">
+			<div class="mdui-dialog-content mdui-col">
+				<div class="mdui-dialog-title mdui-row">
+					<div class="mdui-col-xs-10">重放</div>
+					<button onclick="replaypacket();" class="mdui-btn mdui-btn-raised mdui-ripple mdui-col-xs-1 mdui-color-theme-accent">Go!</button>
+				</div>
+				<div class="dest-selector mdui-row" style="text-align:center">
+					<div class="dest-selector-multi mdui-col-xs-1">
+						<div class="mdui-textfield">
+							<input class="mdui-textfield-input" type="text" placeholder="ip.start" value="192"/>
+						</div>
+						<div class="mdui-textfield">
+							<input class="mdui-textfield-input" type="text" placeholder="ip.end" value="192"/>
+						</div>
+					</div>
+					<div class="dest-selector-multi mdui-col-xs-1">
+						<div class="mdui-textfield">
+							<input class="mdui-textfield-input" type="text" value="168"/>
+						</div>
+						<div class="mdui-textfield">
+							<input class="mdui-textfield-input" type="text" value="168"/>
+						</div>
+					</div>
+					<div class="dest-selector-multi mdui-col-xs-1">
+						<div class="mdui-textfield">
+							<input class="mdui-textfield-input" type="text" value="1"/>
+						</div>
+						<div class="mdui-textfield">
+							<input class="mdui-textfield-input" type="text" value="1"/>
+						</div>
+					</div>
+					<div class="dest-selector-multi mdui-col-xs-1">
+						<div class="mdui-textfield">
+							<input class="mdui-textfield-input" type="text" value="1"/>
+						</div>
+						<div class="mdui-textfield">
+							<input class="mdui-textfield-input" type="text" value="100"/>
+						</div>
+					</div>
+					<div class="dest-selector-multi mdui-col-xs-1"></div>
+					<div class="dest-selector-multi mdui-col-xs-1">
+						<div class="mdui-textfield">
+							<input class="mdui-textfield-input" type="text" value="1" />
+							<label class="mdui-textfield-label">步进</label>
+						</div>
+					</div>
+					<div class="dest-selector-multi mdui-col-xs-1"></div>
+					<div class="dest-selector-multi mdui-col-xs-1"></div>
+					<div class="dest-selector-multi mdui-col-xs-1">
+						<div class="mdui-textfield">
+							<input class="mdui-textfield-input" type="text" placeholder="port.start" value="80"/>
+						</div>
+						<div class="mdui-textfield">
+							<input class="mdui-textfield-input" type="text" placeholder="port.end"
+							value="80"/>
+						</div>
+					</div>
+					<div class="dest-selector-multi mdui-col-xs-1"></div>
+					<div class="dest-selector-multi mdui-col-xs-1">
+						<div class="mdui-textfield">
+							<input class="mdui-textfield-input" type="text" value="1" />
+							<label class="mdui-textfield-label">步进</label>
+						</div>
+					</div>
+				</div>
+				<div class="header-field"></div>
+			</div>
+			<div class="mdui-dialog-content mdui-col responsebox" style="display: none;">
+				
+			</div>
+		</div>
 HTML_CODE
 		);
-		print('</div>');
 		print('
             </body>
         </html>');
@@ -1167,5 +1360,18 @@ if ($_GET['watchbird'] === 'resource'){
 	$ui = new ui();
 	$resource_name = 'mdui_' . $_GET['resource'];
 	die($ui->$resource_name);
+}
+if ($_GET['watchbird'] === 'replay'){
+	ob_end_clean();
+	set_time_limit(3);
+	$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+	socket_connect($socket, $_GET['ip'], intval($_GET['port']));
+	$packet = file_get_contents("php://input");
+	socket_write($socket, $packet, strlen($packet));
+	while ($out = socket_read($socket, 2048)) {
+		echo $out;
+	}
+	socket_close($socket);
+	die();
 }
 $watchbird = new watchbird();
