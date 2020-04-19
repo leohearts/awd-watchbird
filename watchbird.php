@@ -532,7 +532,7 @@ function getcont(){
 	$this->headers['isself'] = "true";
 	$this->headers['watchbirdtimestamp'] = $this->timestamp;
 	$this->headers['Connection'] = "Close";
-	$this->headers["Accept-Encoding"] = "*/*";
+	$this->headers["Accept-Encoding"] = "identity";
 	foreach($this->headers as $k => $v) {
 		$headerstr .= $k . ': ' . $v . "\r\n";
 	}
