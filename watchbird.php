@@ -757,6 +757,10 @@ textarea{font-family: monospace !important;}
 pre{
   font-family: Arial, Helvetica, sans-serif;
   font-weight: 300;
+  white-space: pre-wrap;
+  word-break: break-all;
+  padding-left: 10px;
+  padding-right: 10px;
 }
 *{
   scrollbar-width: thin;
@@ -977,27 +981,6 @@ HTML_CODE
 				</label>
 				<div class="mdui-divider"></div>
 				<div class="mdui-container-fluid logcontainer">
-					<div class="mdui-card mdui-hoverable">
-						<pre>[16:56:18]GET /leo.php?1=whoami HTTP/1.1</pre>
-						<div class="mdui-card-actions">
-							<button class="mdui-btn mdui-ripple">action 1</button>
-							<button class="mdui-btn mdui-ripple">action 2</button>
-						</div>
-					</div>
-					<div class="mdui-card mdui-hoverable">
-						<pre>[16:56:18]GET /leo.php?1=whoami HTTP/1.1</pre>
-						<div class="mdui-card-actions">
-							<button class="mdui-btn mdui-ripple">action 1</button>
-							<button class="mdui-btn mdui-ripple">action 2</button>
-						</div>
-					</div>
-					<div class="mdui-card mdui-hoverable">
-						<pre>[16:56:18]GET /leo.php?1=whoami HTTP/1.1</pre>
-						<div class="mdui-card-actions">
-							<button class="mdui-btn mdui-ripple">action 1</button>
-							<button class="mdui-btn mdui-ripple">action 2</button>
-						</div>
-					</div>
 				</div>
 			</div>
 			<div id="flag_log" class="mdui-shadow-5 mdui-col mdui-hoverable ">
