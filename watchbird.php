@@ -859,6 +859,7 @@ pre{
 						}
 						var inst = new mdui.Dialog(document.getElementsByClassName("repeater")[0]);
 						inst.open();
+						mdui.mutation();
 					}
 					async function sendSinglePacket(ip, port, packet){
 						if (document.getElementById("passhost").checked && (ip+":"+port == document.getElementById("myhost").value ||( ip == document.getElementById("myhost").value && port == 80))){
