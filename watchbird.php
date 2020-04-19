@@ -100,6 +100,7 @@ class configmanager
 	public $flag_path = '/flag';  // 自己flag所在的路径
 	public $LDPRELOAD_PATH = '/var/www/html/waf.so';    //共享库路径
 	public $password_sha1 = 'unset';
+	public $open_basedir = '/';
 	// public $level = 4;  // 0~4 等级越高,防护能力越强,默认为4
 
 	// level处理
@@ -170,12 +171,15 @@ function __construct(){
 	}
 	$this->headers = getallheaders(); //获取header  
 	$this->timestamp = getMillisecond();
+	if ($config->open_basedir !== '/') {
+		ini_set("open_basedir", $config->open_basedir . ':' . $this->dir);
+	}
 	if(isset($_SERVER['HTTP_ISSELF'])){
 		putenv("php_timestamp=".$_SERVER['HTTP_WATCHBIRDTIMESTAMP']);
 		return 0;
 	}
 	else{
-		putenv("php_timestamp=" . $this->timestamp);
+		putenv("php_timestamp=" . $this->timestamp);	// 用于ld_preload rce防护记录日志
 	}
 	$this->allow_time = $config->allow_ddos_time;  // 获取每秒最大访问次数
 	if ($config->waf_ddos == true){
