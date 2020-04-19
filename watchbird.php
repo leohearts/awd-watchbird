@@ -227,14 +227,15 @@ function __construct(){
 			foreach ($res_header as $leo1){
 				header($leo1,false);
 			}
-			header("Content-Encoding: identity");
-			header("Transfer-Encoding: identity");
-			if (preg_match("/^[0-9,a-z]{4}/",$co)){
-				$co=substr($co,4);
-			}
-			if (preg_match("/^[0-9,a-z]{5}/", $co)) {
+			// header("Content-Encoding: gzip");
+			header("Transfer-Encoding: chunked");
+			while (preg_match("/^[0-9,a-z]{5}/", $co)) {
 				$co = substr($co, 5);
 			}
+			while (preg_match("/^[0-9,a-z]{4}/",$co)){
+				$co=substr($co,4);
+			}
+			
 			$co=substr($co,strpos($co,pack("CCC",0xef,0xbb,0xbf)));  // 处理BOM头
 			if (substr($co,0,3) == pack("CCC",0xef,0xbb,0xbf)){
 				$co=substr($co,3);
