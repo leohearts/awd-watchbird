@@ -227,7 +227,7 @@ function __construct(){
 			foreach ($res_header as $leo1){
 				header($leo1,false);
 			}
-			// header("Content-Encoding: gzip");
+			header("Content-Encoding: identidy");
 			header("Transfer-Encoding: chunked");
 			while (preg_match("/^[0-9,a-z]{5}/", $co)) {
 				$co = substr($co, 5);
