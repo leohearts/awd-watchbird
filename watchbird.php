@@ -228,7 +228,7 @@ function __construct(){
 				header($leo1,false);
 			}
 			header("Content-Encoding: identidy");
-			header("Transfer-Encoding: chunked");
+			header("Transfer-Encoding: chunked");	// finally!
 			// while (preg_match("/^[0-9,a-z]{5}/", $co)) {
 			// 	$co = substr($co, 5);
 			// }
