@@ -465,7 +465,7 @@ function watch_attack_keyword($str){
 //	记录每次大概访问记录，类似日志，以便在详细记录中查找
 function write_access_log_probably() { 
 	$tmp = sha1("Syclover").$this->timestamp.sha1("Syclover");
-	$tmp .= "[" . date('H:i:s') . "]" . $_SERVER['REQUEST_METHOD'].' '.$this->request_url.' '.$_SERVER['SERVER_PROTOCOL'];
+	$tmp .= "[" . date('H:i:s') . "]" . $_SERVER['REQUEST_METHOD'].' '.$_SERVER['REQUEST_URI'].' '.$_SERVER['SERVER_PROTOCOL'];
 	if (!empty($this->request_data)){
 		$tmp .= "\n".$this->request_data; 
 	}
@@ -478,7 +478,7 @@ function write_access_logs_detailed(){
 	$tmp = sha1("Syclover"). $this->timestamp. sha1("Syclover");
 	$tmp .= "[" . date('H:i:s') . "]\n";
 	$tmp .= "SRC IP: " . $_SERVER["REMOTE_ADDR"]."\n";
-	$tmp .= $_SERVER['REQUEST_METHOD'].' '.$this->request_url.' '.$_SERVER['SERVER_PROTOCOL']."\n"; 
+	$tmp .= $_SERVER['REQUEST_METHOD'].' '.$_SERVER['REQUEST_URI'].' '.$_SERVER['SERVER_PROTOCOL']."\n"; 
 	foreach($this->headers as $k => $v) {
 		if ($k==="isself"){
 			continue;
@@ -499,7 +499,7 @@ function write_attack_log($alert){
 	$tmp = sha1("Syclover").$this->timestamp. sha1("Syclover");
 	$tmp .= "[" . date('H:i:s') . "] {".$alert."}\n";
 	$tmp .= "SRC IP: " . $_SERVER["REMOTE_ADDR"]."\n";
-	$tmp .= $_SERVER['REQUEST_METHOD'].' '.$this->request_url.' '.$_SERVER['SERVER_PROTOCOL']."\n"; 
+	$tmp .= $_SERVER['REQUEST_METHOD'].' '.$_SERVER['REQUEST_URI'].' '.$_SERVER['SERVER_PROTOCOL']."\n"; 
 	foreach($this->headers as $k => $v) {
 		if ($k==="isself"){
 			continue;
@@ -1034,6 +1034,9 @@ pre{
 									eval('timestamp' + module + "=" + myJson[myJson.length - 1]);
 								}
 							});
+							if (eval('timestamp' + module) == 0){
+								eval('timestamp' + module + "=1");
+							}
 						}
 					}
                 </script>
