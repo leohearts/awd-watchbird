@@ -816,31 +816,31 @@ pre{
 						document.getElementById(e).classList.replace("mdui-hidden", "mdui-not-hidden");
 						document.getElementsByClassName('mdui-typo-title')[0].innerHTML = e;
 					}
+					async function sendnoti(tit, msg){
+						Notification.requestPermission().then(function (permission) {
+							if (permission === 'granted') {
+								var n = new Notification(tit, {
+									body: msg,
+									icon: '?watchbird=resource&resource=logo'
+								});
+							} else if (permission === 'denied') {
+								console.log('用户拒绝通知');
+							}
+						});
+						mdui.snackbar({
+							message: tit,
+							timeout: 500,
+							position: "right-top"
+						});
+						await sleep(500);
+					}
 					async function addlog(doReplay, module, str, id){
 						if (module == 'flag_log' && timestampflag_log > 0){
-							Notification.requestPermission().then(function (permission) {
-								if (permission === 'granted') {
-									var n = new Notification('深度防御拦截了一次有效攻击', {
-										body: '查看flag_log以获取详细信息',
-										icon: '?watchbird=resource&resource=logo'
-									});
-								} else if (permission === 'denied') {
-									console.log('用户拒绝通知');
-								}
-							});
+							await sendnoti('深度防御拦截了一次有效攻击', '查看flag_log以获取详细信息');
 						}
 						if (module == "rce_log"){
 							if (timestamprce_log > 0){
-								Notification.requestPermission().then(function (permission) {
-									if (permission === 'granted') {
-										var n = new Notification('RCE防护拦截了一次有效攻击', {
-											body: '查看rce_log以获取详细信息',
-											icon: '?watchbird=resource&resource=logo'
-										});
-									} else if (permission === 'denied') {
-										console.log('用户拒绝通知');
-									}
-								});
+								await sendnoti('RCE防护拦截了一次有效攻击', '查看rce_log以获取详细信息');
 							}
 							var cpydiv = document.getElementById("web_log" + id).cloneNode(true);
 							cpydiv.id = module + id;
