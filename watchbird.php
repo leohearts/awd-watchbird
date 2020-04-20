@@ -1112,6 +1112,7 @@ pre{
 								continue;
 							}
 							if (module == "all_requests"){doReplay = false;}
+							var isNew = true;
 							await fetch("?watchbird=log&module="+module+"&timestamp="+eval('timestamp'+module))
 							.then(function(response) {
 								return response.json();
@@ -1126,7 +1127,11 @@ pre{
 								if (myJson.length > 1){
 									eval('timestamp' + module + "=" + myJson[myJson.length - 1]);
 								}
+								else if (co == 0){
+									isNew = false;
+								}
 							});
+							if (!isNew){return;}
 							if (eval('timestamp' + module) == 0){
 								eval('timestamp' + module + "=1");
 							}
@@ -1241,7 +1246,7 @@ HTML_CODE
 			<div id="web_log" class="mdui-shadow-5 mdui-col mdui-hoverable ">
 				<p style="width: 60%;display: inline-flex;left: 20px;position: relative;">web_log</p>
 				<label class="mdui-checkbox">
-					<input type="checkbox" checked />
+					<input type="checkbox" disabled checked />
 					<i class="mdui-checkbox-icon"></i>
 					自动更新
 				</label>
