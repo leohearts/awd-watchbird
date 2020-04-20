@@ -942,7 +942,17 @@ pre{
 							document.getElementsByClassName("responsebox")[0].firstElementChild.style.opacity = 1;
 						});
 					}
+					var replayRunning = false;
 					async function replaypacket(){
+						if (replayRunning){
+							replayRunning = false;
+							event.target.innerText = "Stoping..";
+							event.target.disabled = true;
+							return;
+						}
+						replayRunning = true;
+						var target = event.target;
+						target.innerText = "Stop";
 						var packet = "";
 						var listcount = document.getElementsByClassName("header-field")[0].childElementCount;
 						for (var i = 0;i < listcount - 1;i++){
@@ -989,13 +999,21 @@ pre{
 								for (var k = ip_part3_start;k<=ip_part3_end;k+=ipstep){
 									for (var l = ip_part4_start;l<=ip_part4_end;l+=ipstep){
 										for (var m = port_start;m<=port_end;m+=port_step){
-											await sendSinglePacket(i.toString()+'.'+j+'.'+k+'.'+l, m, packet);
-											new mdui.Dialog(document.getElementsByClassName("repeater")[0]).handleUpdate()
+											if (replayRunning){
+												await sendSinglePacket(i.toString()+'.'+j+'.'+k+'.'+l, m, packet);
+												new mdui.Dialog(document.getElementsByClassName("repeater")[0]).handleUpdate()
+											}else{
+												target.innerText = "Go!";
+												event.target.disabled = false;
+												break;
+											}
 										}
 									}
 								}
 							}
 						}
+						replayRunning = false;
+						target.innerText = "GO!";
 					}
                     function changevalue_switch(){
                         var val = event.target.checked+0;
