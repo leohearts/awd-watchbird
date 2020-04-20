@@ -879,6 +879,48 @@ pre{
 						inst.open();
 						mdui.mutation();
 					}
+					async function submitFlag(flag){
+						var submit_packet_header = document.getElementById("submit_packet_header").value;
+						var submit_packet_body = document.getElementById("submit_packet_body").value;
+						var headerList = submit_packet_header.split("\\n");
+						var finalPacket = "";
+						var isPost = (submit_packet_body.trim().length != 0);
+						var ipAddr = "";
+						var port = "80";
+						for (var i = 0;i < headerList.length; i++){
+							if (headerList[i].search(new RegExp("^content-length:", 'i')) != -1){continue;}
+							if (headerList[i].search(new RegExp("^host:", 'i')) != -1){
+								ipAddr = headerList[i].trim().split(":")[1].trim();
+								try{
+									port = headerList[i].trim().split(":")[2].trim();
+									if (port == undefined) {port = "80"};
+								}
+								catch{}
+							}
+							finalPacket += headerList[i].trim();
+							finalPacket += "\\r\\n";
+						}
+						if (isPost){
+							finalPacket += "Content-Length: " + submit_packet_body.length;
+							finalPacket += "\\r\\n\\r\\n";
+							finalPacket += submit_packet_body;
+						}
+						var ret = "";
+						if (submit_packet_header.search("x-www-form-urlencoded") != -1){
+							flag = escape(flag);
+						}
+						finalPacket = finalPacket.replace("{flag_content}", flag);
+						await fetch("?watchbird=replay&ip="+ipAddr+"&port="+port, {
+							body: finalPacket,
+							method: 'POST',
+						}).then(function(response) {
+							return response.text();
+						}).then(async function(resp) {
+							ret = resp;
+						});
+						ret = ret.substring(ret.search("\\r\\n\\r\\n") + 4);
+						return ret;
+					}
 					async function sendSinglePacket(ip, port, packet){
 						if (document.getElementById("passhost").checked && (ip+":"+port == document.getElementById("myhost").value ||( ip == document.getElementById("myhost").value && port == 80))){
 							var newcard = document.createElement("div");
@@ -934,13 +976,19 @@ pre{
 							newcard_primary.append(subtitle);
 							var flag_regex = document.getElementById("flag_regex").value;
 							var flag_content = resp.match(new RegExp(flag_regex));
-							if (flag_content.length > 0){
+							var submitResult = "";
+							if (flag_content != null && flag_content[0].trim() != ""){
 								var subtitle2 = document.createElement("div");
 								subtitle2.classList.add("mdui-card-primary-subtitle");
 								subtitle2.style.width = 120;
 								subtitle2.style.paddingRight = 0;
 								subtitle2.style.wordWrap = "anywhere";
-								subtitle2.innerHTML = flag_content[0];
+								subtitle2.innerText = flag_content[0];
+								if (document.getElementById("flag_auto_submit").checked){
+									console.log(ip+":"+port+"    "+flag_content[0]);
+									submitResult = await submitFlag(flag_content[0]);
+									subtitle2.innerText += "\\n" + submitResult;
+								}
 								newcard_primary.append(subtitle2);
 							}
 							var cardcontent = document.createElement("div");
@@ -1304,7 +1352,7 @@ HTML_CODE
 								</div>
 								<div class="mdui-valign mdui-col-xs-2">
 									<label class="mdui-checkbox">
-										<input type="checkbox"/>
+										<input id="flag_auto_submit" type="checkbox"/>
 										<i class="mdui-checkbox-icon"></i>
 										<p style="margin-top: -2px;margin-left: -5px;">启用</p>
 									</label>
