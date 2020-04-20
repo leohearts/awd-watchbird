@@ -1004,7 +1004,7 @@ pre{
 												new mdui.Dialog(document.getElementsByClassName("repeater")[0]).handleUpdate()
 											}else{
 												target.innerText = "Go!";
-												event.target.disabled = false;
+												target.disabled = false;
 												break;
 											}
 										}
@@ -1014,6 +1014,7 @@ pre{
 						}
 						replayRunning = false;
 						target.innerText = "GO!";
+						target.disabled = false;
 					}
                     function changevalue_switch(){
                         var val = event.target.checked+0;
