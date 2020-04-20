@@ -152,6 +152,7 @@ class watchbird{
 	private $dir;
 	private $logdir;
 	private $uploaddir;
+	private $tokendir;
 	private $allow_time;
 	private $response_content;
 	private $timestamp;
@@ -167,6 +168,7 @@ function __construct(){
 	$this->logdir = $this->dir.'log/';
 	$this->uploaddir = $this->dir.'upload/';
 	$this->ipdir = $this->dir.'ip/';
+	$this->tokendir = $this->dir . 'token/';
 	if ($config->waf_ldpreload == 1) {
 		putenv("LD_PRELOAD=" . $config->LDPRELOAD_PATH);
 	}
@@ -175,7 +177,8 @@ function __construct(){
 	if ($config->open_basedir !== '/') {
 		ini_set("open_basedir", $config->open_basedir . ':/tmp/');
 	}
-	if(isset($_SERVER['HTTP_ISSELF'])){
+	if(isset($_SERVER['HTTP_WATCHBIRDTOKEN']) && file_exists($this->tokendir . $_SERVER['HTTP_WATCHBIRDTOKEN'])){
+		unlink($this->tokendir . $_SERVER['HTTP_WATCHBIRDTOKEN']);
 		putenv("php_timestamp=".$_SERVER['HTTP_WATCHBIRDTIMESTAMP']);
 		return 0;
 	}
@@ -190,6 +193,7 @@ function __construct(){
 	$this->e_mkdir($this->logdir);
 	$this->e_mkdir($this->uploaddir);
 	$this->e_mkdir($this->ipdir);
+	$this->e_mkdir($this->tokendir);
 	$this->request_url = $this->filter_0x25(urldecode($_SERVER['REQUEST_URI'])); //	获取url来进行检测
 	$this->request_data = file_get_contents('php://input');	//	获取post
 	if ($config->waf_headers == true)
@@ -535,10 +539,12 @@ function getcont(){
 	global $config;
 	$headerstr = "";
 	$this->response_content = "";
-	$this->headers['isself'] = "true";
 	$this->headers['watchbirdtimestamp'] = $this->timestamp;
 	$this->headers['Connection'] = "Close";
 	$this->headers["Accept-Encoding"] = "*/*";
+	$token = rand();
+	$this->headers['WatchbirdToken'] = $token;
+	touch ($this->tokendir . $token);
 	foreach($this->headers as $k => $v) {
 		$headerstr .= $k . ': ' . $v . "\r\n";
 	}
@@ -926,6 +932,17 @@ pre{
 							subtitle.style.paddingRight = 0;
 							subtitle.innerHTML = ip+":"+port;
 							newcard_primary.append(subtitle);
+							var flag_regex = document.getElementById("flag_regex").value;
+							var flag_content = resp.match(new RegExp(flag_regex));
+							if (flag_content.length > 0){
+								var subtitle2 = document.createElement("div");
+								subtitle2.classList.add("mdui-card-primary-subtitle");
+								subtitle2.style.width = 120;
+								subtitle2.style.paddingRight = 0;
+								subtitle2.style.wordWrap = "anywhere";
+								subtitle2.innerHTML = flag_content[0];
+								newcard_primary.append(subtitle2);
+							}
 							var cardcontent = document.createElement("div");
 							cardcontent.classList.add("mdui-card-content");
 							if (resp.trim() == ""){
