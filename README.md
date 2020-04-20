@@ -26,7 +26,7 @@
     - 功能开关及配置
     - 实时日志查看
     - 日志流量重放, 可广播流量至指定网段
-    - RCE/文件上传/深度检测 防御通知*(由于chrome无法允许不安全的网站(无SSL证书)显示通知,请使用Firefox并修改about:config中dom.webnotifications.allowinsecure为true)*
+    - RCE/文件上传/深度检测 防御通知(由于chrome无法允许不安全的网站(无SSL证书)显示通知,请使用Firefox并修改about:config中dom.webnotifications.allowinsecure为true)
 
 ## 使用
 
@@ -34,9 +34,9 @@
 2. 编译waf.c生成.so文件,参考命令:gcc waf.c -shared -fPIC -o waf.so
 3. 将waf.so,watchbird.php文件存放在/var/www/html或其他目录中
 4. 访问任意启用了waf的文件, 参数```?watchbird=ui```打开watchbird控制台, 创建一个初始密码
-5. 将以下代码放入需要启用waf的php脚本的第一行`<?php include_once "watchbird.php" ?>`
+5. 将以下代码放入需要启用waf的php脚本的第一行`<?php include_once "/var/www/html/watchbird.php" ?>`
 
 ## 贡献者
 
-- *Longlone*
 - *Leohearts*
+- *Longlone*
