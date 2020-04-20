@@ -1,7 +1,7 @@
-# Watchbird
+# WatchBird
 ***Version 1.3***
 
-***A PHP WAF for AWD***
+***A powerrful PHP WAF for AWD***
 
 ## 功能:
 
@@ -20,7 +20,7 @@
 - 深度防御:
     - 响应检测/反向代理(默认将流量发送至本地服务器自检,可配置代理服务器IP及端口实现反代功能)
     - 响应flag检测并返回虚假flag
-- 基于open_basedir的PHP读取文件保护
+- 基于open_basedir的PHP文件操作保护
 - 基于LD_PRELOAD的指令执行保护
 - 网页控制台:
     - 功能开关及配置
