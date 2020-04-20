@@ -25,7 +25,7 @@
 - 网页控制台:
     - 功能开关及配置
     - 实时日志查看
-    - 日志流量重放, 可广播流量至指定网段
+    - 日志流量重放, 可广播流量至指定网段支持提取flag自动提交
     - RCE/文件上传/深度检测 防御通知(由于chrome无法允许不安全的网站(无SSL证书)显示通知,请使用Firefox并修改about:config中dom.webnotifications.allowinsecure为true)
 
 ## 使用
