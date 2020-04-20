@@ -875,6 +875,8 @@ pre{
 							newcard_primary.classList.add("mdui-card-primary");
 							var subtitle = document.createElement("div");
 							subtitle.classList.add("mdui-card-primary-subtitle");
+							subtitle.style.width = 120;
+							subtitle.style.paddingRight = 0;
 							subtitle.innerHTML = ip+":"+port;
 							newcard_primary.append(subtitle);
 							var cardcontent = document.createElement("div");
@@ -882,7 +884,12 @@ pre{
 							cardcontent.innerText = "已跳过当前主机";
 							newcard.append(newcard_primary);
 							newcard.append(cardcontent);
+							newcard.style.transition = "all .3s linear 0s"
+							newcard.style.display = "flex";
+							newcard.style.opacity = 0;
 							document.getElementsByClassName("responsebox")[0].prepend(newcard);
+							await sleep(10);
+							document.getElementsByClassName("responsebox")[0].firstElementChild.style.opacity = 1;
 							return;
 						}
 						if (document.getElementById("modifyHost").checked){
@@ -899,7 +906,7 @@ pre{
 							method: 'POST',
 						}).then(function(response) {
 							return response.text();
-						}).then(function(resp) {
+						}).then(async function(resp) {
 							var newcard = document.createElement("div");
 							newcard.classList.add("mdui-card");
 							newcard.style.maxHeight = 600;
@@ -908,6 +915,8 @@ pre{
 							newcard_primary.classList.add("mdui-card-primary");
 							var subtitle = document.createElement("div");
 							subtitle.classList.add("mdui-card-primary-subtitle");
+							subtitle.style.width = 120;
+							subtitle.style.paddingRight = 0;
 							subtitle.innerHTML = ip+":"+port;
 							newcard_primary.append(subtitle);
 							var cardcontent = document.createElement("div");
@@ -918,7 +927,12 @@ pre{
 							cardcontent.innerText = resp;
 							newcard.append(newcard_primary);
 							newcard.append(cardcontent);
+							newcard.style.transition = "all .3s linear 0s"
+							newcard.style.display = "flex";
+							newcard.style.opacity = 0;
 							document.getElementsByClassName("responsebox")[0].prepend(newcard);
+							await sleep(10);
+							document.getElementsByClassName("responsebox")[0].firstElementChild.style.opacity = 1;
 						});
 					}
 					async function replaypacket(){
@@ -966,6 +980,7 @@ pre{
 									for (var l = ip_part4_start;l<=ip_part4_end;l+=ipstep){
 										for (var m = port_start;m<=port_end;m+=port_step){
 											await sendSinglePacket(i.toString()+'.'+j+'.'+k+'.'+l, m, packet);
+											new mdui.Dialog(document.getElementsByClassName("repeater")[0]).handleUpdate()
 										}
 									}
 								}
@@ -1191,7 +1206,7 @@ HTML_CODE
 				</div>
 			</div>
 		</div>
-		<div id="repeater" class="mdui-dialog repeater">
+		<div id="repeater" class="mdui-dialog repeater" style="transition: all .15s linear 0s;">
 			<div class="mdui-dialog-content mdui-col">
 				<div class="mdui-dialog-title mdui-row">
 					<div class="mdui-col-xs-4">重放</div>
@@ -1212,6 +1227,11 @@ HTML_CODE
 						</div>
 					</div>
 					<button onclick="replaypacket();" class="mdui-btn mdui-btn-raised mdui-ripple mdui-col-xs-1 mdui-color-theme-accent">Go!</button>
+				</div>
+				<div class="mdui-row">
+					<div class="mdui-col">
+						<label onclick="new mdui.Dialog(document.getElementById('flag_congig')).open();" class="mdui-valign"><button class="mdui-btn mdui-btn-icon mdui-ripple"><i class="mdui-icon material-icons">settings</i></button>Flag自动提交</label>
+					</div>
 				</div>
 				<div class="dest-selector mdui-row" style="text-align:center">
 					<div class="dest-selector-multi mdui-col-xs-1">
