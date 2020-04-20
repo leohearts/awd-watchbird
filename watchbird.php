@@ -939,7 +939,7 @@ pre{
 							packet += "\\r\\n\\r\\n";
 						}
 						document.getElementsByClassName("repeater")[0].style.width = 1500;
-						document.getElementsByClassName("repeater")[0].style.maxWidth = "100%";
+						document.getElementsByClassName("repeater")[0].style.maxWidth = "95%";
 						document.getElementsByClassName("repeater")[0].classList.add("mdui-row-xs-2")
 						document.getElementsByClassName("responsebox")[0].style.display = "block";
 						document.getElementsByClassName("responsebox")[0].prepend(document.createElement("br"));
