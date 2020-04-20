@@ -800,6 +800,15 @@ pre{
                         if (document.cookie.replace(/(?:(?:^|.*;\s*)theme\s*\=\s*([^;]*).*$)|^.*$/, "$1") == "dark"){
                             changetheme();
 						}
+						if (document.cookie.replace(/(?:(?:^|.*;\s*)submit_packet_body\s*\=\s*([^;]*).*$)|^.*$/, "$1") != ""){
+                            document.getElementById("submit_packet_body").value = unescape(document.cookie.replace(/(?:(?:^|.*;\s*)submit_packet_body\s*\=\s*([^;]*).*$)|^.*$/, "$1"));
+						}
+						if (document.cookie.replace(/(?:(?:^|.*;\s*)submit_packet_header\s*\=\s*([^;]*).*$)|^.*$/, "$1") != ""){
+                            document.getElementById("submit_packet_header").value = unescape(document.cookie.replace(/(?:(?:^|.*;\s*)submit_packet_header\s*\=\s*([^;]*).*$)|^.*$/, "$1"));
+						}
+						if (document.cookie.replace(/(?:(?:^|.*;\s*)flag_regex\s*\=\s*([^;]*).*$)|^.*$/, "$1") != ""){
+                            document.getElementById("flag_regex").value = unescape(document.cookie.replace(/(?:(?:^|.*;\s*)flag_regex\s*\=\s*([^;]*).*$)|^.*$/, "$1"));
+						}
 						startDaemon();
 						Notification.requestPermission().then(function (permission) {
 							if (permission === 'granted') {
@@ -845,9 +854,6 @@ pre{
 						var text_search_nn = text.search("\\n\\n");
 						if (text_search_nn != -1){
 							postdata = text.substring(text_search_nn+2);
-							console.log(text)
-							console.log(text_search_nn);
-							console.log(postdata)
 							text = text.substring(0, text_search_nn);
 						}
 						var queryList = text.split("\\n");
@@ -899,7 +905,6 @@ pre{
 							else{
 								packet = packet.replace(new RegExp('host: {0,}[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}', 'i'), 'Host: '+ip+":"+port);
 							}
-							console.log(packet);
 						}
 						await fetch("?watchbird=replay&ip="+ip+"&port="+port, {
 							body: packet,
@@ -961,6 +966,9 @@ pre{
 						newdelimiter.classList.add("mdui-divider");
 						document.getElementsByClassName("responsebox")[0].prepend(newdelimiter);
 						document.getElementsByClassName("responsebox")[0].prepend(document.createElement("br"));
+						document.cookie = "submit_packet_header="+escape(document.getElementById("submit_packet_header").value);
+						document.cookie = "submit_packet_body="+escape(document.getElementById("submit_packet_body").value);
+						document.cookie = "flag_regex="+escape(document.getElementById("flag_regex").value);
 						var domInputNodes = document.getElementsByClassName("dest-selector-multi");
 						var ip_part1_start = domInputNodes[0].querySelectorAll("input")[0].value - 0;
 						var ip_part1_end = domInputNodes[0].querySelectorAll("input")[1].value - 0;
@@ -1103,6 +1111,12 @@ pre{
 							}
 						}
 					}
+					async function handlePanelUpdate(){
+						for (var i = 0;i<50;i++){
+							new mdui.Dialog(document.getElementsByClassName("repeater")[0]).handleUpdate();
+							await sleep(3);
+						}
+					}
                 </script>
             </head>
             <body class="mdui-appbar-with-toolbar mdui-loaded mdui-drawer-body-left mdui-theme-primary-teal mdui-theme-accent-pink">
@@ -1207,7 +1221,7 @@ HTML_CODE
 			</div>
 		</div>
 		<div id="repeater" class="mdui-dialog repeater" style="transition: all .15s linear 0s;">
-			<div class="mdui-dialog-content mdui-col">
+			<div class="mdui-dialog-content mdui-col" style="scrollbar-width: none;">
 				<div class="mdui-dialog-title mdui-row">
 					<div class="mdui-col-xs-4">重放</div>
 					<div class="mdui-col-xs-6 mdui-row" style="height: 10px;">
@@ -1229,8 +1243,37 @@ HTML_CODE
 					<button onclick="replaypacket();" class="mdui-btn mdui-btn-raised mdui-ripple mdui-col-xs-1 mdui-color-theme-accent">Go!</button>
 				</div>
 				<div class="mdui-row">
-					<div class="mdui-col">
-						<label onclick="new mdui.Dialog(document.getElementById('flag_congig')).open();" class="mdui-valign"><button class="mdui-btn mdui-btn-icon mdui-ripple"><i class="mdui-icon material-icons">settings</i></button>Flag自动提交</label>
+					<div class="mdui-panel mdui-panel-gapless" mdui-panel>
+
+						<div class="mdui-panel-item">
+							<div onclick='handlePanelUpdate();' class="mdui-panel-item-header mdui-row">
+								<div class="mdui-valign mdui-col-xs-10">
+									<label><button class="mdui-btn mdui-btn-icon mdui-ripple"><i class="mdui-icon material-icons">settings</i></button></label>Flag自动提交
+								</div>
+								<div class="mdui-valign mdui-col-xs-2">
+									<label class="mdui-checkbox">
+										<input type="checkbox"/>
+										<i class="mdui-checkbox-icon"></i>
+										<p style="margin-top: -2px;margin-left: -5px;">启用</p>
+									</label>
+								</div>
+							</div>
+							<div class="mdui-panel-item-body">
+								<div class="mdui-textfield">
+									<label class="mdui-textfield-label">Flag正则</label>
+									<textarea id="flag_regex" class="mdui-textfield-input" type="text" >flag\\{[0-9, a-z]{12,64}\\}</textarea>
+								</div>
+								<div class="mdui-textfield">
+									<label class="mdui-textfield-label">提交给flag机的数据包, 用{flag_content}表示flag内容</label>
+									<textarea id="submit_packet_header" class="mdui-textfield-input" spellcheck="false" type="text">POST /check?uuid=leohearts HTTP/1.1\nHost: 192.168.1.1\nCookie: PHPSESSID=vdcie5nmh19vioc5s1m02eq9d9\nContent-Length: 0\nAccept: */*\nConnection: close\nContent-Type: application/x-www-form-urlencoded</textarea>
+								</div>
+								<div class="mdui-textfield">
+									<label class="mdui-textfield-label">POST数据, 可留空</label>
+									<textarea id="submit_packet_body" class="mdui-textfield-input" spellcheck="false" type="text">flag={flag_content}</textarea>
+								</div>
+								
+							</div>
+						</div>
 					</div>
 				</div>
 				<div class="dest-selector mdui-row" style="text-align:center">
@@ -1294,9 +1337,7 @@ HTML_CODE
 				</div>
 				<div class="header-field"></div>
 			</div>
-			<div class="mdui-dialog-content mdui-col responsebox" style="display: none;">
-				
-			</div>
+			<div class="mdui-dialog-content mdui-col responsebox" style="display: none;"></div>
 		</div>
 HTML_CODE
 		);
