@@ -239,7 +239,7 @@ function __construct(){
 			// if (substr($co,0,3) == pack("CCC",0xef,0xbb,0xbf)){
 			// 	$co=substr($co,3);
 			// }
-			if (substr($co,-7)=="\r\n0\r\n\r\n"){
+			if (substr($co,-7)=="\r\n0\r\n\r\n" && preg_match("/^[0-9, a-f]/", $co)){
 				// $co=rtrim($co,"\r\n0\r\n\r\n");
 				// $co .= "\r\n\r\n";
 				header("Transfer-Encoding: chunked");	// finally!
