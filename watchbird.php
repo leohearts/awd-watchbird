@@ -889,6 +889,7 @@ pre{
 						var port = "80";
 						for (var i = 0;i < headerList.length; i++){
 							if (headerList[i].search(new RegExp("^content-length:", 'i')) != -1){continue;}
+							if (!isPost && headerList[i].search(new RegExp("^content-type:", 'i')) != -1){continue;}
 							if (headerList[i].search(new RegExp("^host:", 'i')) != -1){
 								ipAddr = headerList[i].trim().split(":")[1].trim();
 								try{
@@ -904,6 +905,9 @@ pre{
 							finalPacket += "Content-Length: " + submit_packet_body.length;
 							finalPacket += "\\r\\n\\r\\n";
 							finalPacket += submit_packet_body;
+						}
+						else{
+							finalPacket += "\\r\\n";
 						}
 						var ret = "";
 						if (submit_packet_header.search("x-www-form-urlencoded") != -1){
