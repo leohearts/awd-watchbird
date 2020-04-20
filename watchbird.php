@@ -51,6 +51,7 @@ Lisence:
 
 
 $config_path = '/tmp/watchbird/watchbird.conf';
+$check_upload_path = "/tmp/wb_check_upload";
 // $level = 4;  // 0~4 等级越高,防护能力越强,默认为4
 error_reporting(0);
 
@@ -387,12 +388,13 @@ function watch_special_char($str){
 监测文件上传
 */
 function watch_upload(){
-	global $config;
+	global $config, $check_upload_path;
 	foreach ($_FILES as $key => $value) {
 		if($_FILES[$key]['error'] == 0){
 			$ext = substr(strrchr($_FILES[$key]["name"], '.'), 1);
 			$this->write_attack_log("Catch attack: < Evil Upload, please check ".$this->uploaddir." dir > ");
 			copy($_FILES[$key]["tmp_name"], $this->uploaddir.date("d_H_i_s").'.'.$ext.'.txt');
+			file_put_contents($check_upload_path,"check!");
 			if(!preg_match($config->upload_whitelist, $ext))
 			{
 				unlink($_FILES[$key]['tmp_name']);
@@ -1110,6 +1112,15 @@ pre{
 								eval('timestamp' + module + "=1");
 							}
 						}
+						await fetch("?watchbird=checkupload")
+						.then(function(response) {
+							return response.json();
+						})
+						.then(async function(myJson) {
+							if(myJson["auth"] == true && myJson["change"] == true){
+								await sendnoti('文件上传防御拦截了一次攻击', '请查看/tmp/watchbird/upload文件夹或设置的文件夹');
+							}
+						});
 					}
 					async function handlePanelUpdate(){
 						for (var i = 0;i<50;i++){
@@ -1465,6 +1476,20 @@ if ($_GET['watchbird'] === 'change') {
 		die('Credential error');
 	}
 	$config->change($_GET['key'], $_GET['value']);
+}
+if ($_GET['watchbird'] === 'checkupload') {
+	ob_end_clean();
+	session_start();
+	global $check_upload_path;
+	$check = array('auth'=>true, 'change'=>false);
+	if ($_SESSION['login'] !== 'success') {
+		$check['auth'] = false;
+	}
+	if (is_file($check_upload_path)){
+		$check['change'] = true;
+		unlink($check_upload_path);
+	}
+	die(json_encode($check));
 }
 if ($_GET['watchbird'] === 'log') {
 	ob_end_clean();
