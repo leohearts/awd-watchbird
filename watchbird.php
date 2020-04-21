@@ -857,7 +857,10 @@ pre{
 						var text = event.target.parentElement.previousElementSibling.innerText;
 						document.getElementsByClassName("repeater")[0].getElementsByClassName("header-field")[0].innerHTML = "";
 						text = parseRequest(text);
-						document.getElementById("myhost").value = text.match(new RegExp("host: {0,}[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}", 'i'))[0].match(new RegExp("[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}"))[0];
+						try{
+							document.getElementById("myhost").value = text.match(new RegExp("host: {0,}[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}", 'i'))[0].match(new RegExp("[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}"))[0];
+						}
+						catch{}
 						var postdata = "undefined";
 						var text_search_nn = text.search("\\n\\n");
 						if (text_search_nn != -1){
