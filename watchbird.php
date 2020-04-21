@@ -108,7 +108,7 @@ class configmanager
 	public $waf_headers = 1;  // headers防御
 	public $waf_ddos = 1;  // ddos防御
 	public $waf_upload = 1;  // 上传防御
-	public $waf_special_char = 1; // 特殊字符防御
+	public $waf_special_char = 0; // 特殊字符防御
 	public $waf_sql = 1;  // sql防御
 	public $waf_rce = 1;  // rce防御
 	public $waf_ldpreload = 1;    //基于LD_PRELOAD的rce防护
@@ -117,7 +117,8 @@ class configmanager
 	public $waf_flag = 1;  // getflag防御
 	public $response_content_match = 1; // 匹配响应中有无flag特征
 	public $debug = 0;  // debug模式
-	public $allow_ddos_time = 3;  // 每秒最多10个访问 
+	public $scheduled_killall = 0;
+	public $allow_ddos_time = 5;  // 每秒最多5个访问 
 
 	public $waf_fake_flag = "flag{Longlone:W0r1<_HaRd3r}";  // 虚假flag,需开启waf_flag
 	public $remote_ip = "127.0.0.1";    //	服务器ip
@@ -733,6 +734,9 @@ SVG_RESOURCE;
 		// die(var_dump(get_object_vars($config)));
 		if ($this->passwdhash === 'unset'){
 			if (isset($_GET['passwd'])){
+				if (trim($_GET['passwd'] === "")){
+					die('密码不能为空');
+				}
 				$config->change('password_sha1', sha1($_GET['passwd']));
 				die('密码初始化成功');
 			}
@@ -818,6 +822,7 @@ pre{
                             document.getElementById("flag_regex").value = unescape(document.cookie.replace(/(?:(?:^|.*;\s*)flag_regex\s*\=\s*([^;]*).*$)|^.*$/, "$1"));
 						}
 						startDaemon();
+						startKillallTimer();
 						Notification.requestPermission().then(function (permission) {
 							if (permission === 'granted') {
 								console.log('用户允许通知');
@@ -826,6 +831,16 @@ pre{
 							}
 						});
                     });
+					async function startKillallTimer(){
+						document.getElementById("config_scheduled_killall").nextElementSibling.nextSibling.textContent = "每分钟自动关闭所有Web进程并清理Crontab";
+						document.getElementById("config_scheduled_killall").nextElementSibling.style.marginRight = "12px";
+						while(1){
+							await sleep(60000);
+							if (document.getElementById("config_scheduled_killall").checked){
+								await fetch("?watchbird=scheduled_killall");
+							}
+						}
+					}
 					async function startDaemon(){
 						while(1){
 							try{
@@ -1090,7 +1105,7 @@ pre{
 					}
                     function changevalue_switch(){
                         var val = event.target.checked+0;
-                        fetch("?watchbird=change&key="+event.target.nextElementSibling.nextSibling.textContent.trim()+"&value="+val);
+                        fetch("?watchbird=change&key="+event.target.id.substring(7).trim()+"&value="+val);
                     }
                     function changevalue_text(){
                         var target = event.target;
@@ -1260,13 +1275,13 @@ HTML_CODE
 		foreach (get_object_vars($config) as $key => $val) {
 			if ($val === 0) {
 				print('<div class="mdui-col"><label class="mdui-switch">
-  <input onclick="changevalue_switch();" type="checkbox"/>
+  <input id="config_' . $key . '" onclick="changevalue_switch();" type="checkbox"/>
   <i class="mdui-switch-icon"></i>&nbsp;&nbsp;&nbsp;&nbsp;' . $key . '
 </label></div>');
 			}
 			if ($val === 1) {
 				print('<div class="mdui-col"><label class="mdui-switch">
-  <input onclick="changevalue_switch();" type="checkbox" checked />
+  <input id="config_' . $key . '" onclick="changevalue_switch();" type="checkbox" checked />
   <i class="mdui-switch-icon"></i>&nbsp;&nbsp;&nbsp;&nbsp;' . $key . '
 </label></div>');
 			}
@@ -1613,6 +1628,10 @@ if ($_GET['watchbird'] === 'resource'){
 }
 if ($_GET['watchbird'] === 'replay'){
 	ob_end_clean();
+	session_start();
+	if ($_SESSION['login'] !== 'success') {
+		die('Credential error');
+	}
 	set_time_limit(3);
 	$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
 	socket_set_option($socket,SOL_SOCKET,SO_RCVTIMEO,array("sec"=> 3, "usec"=> 0 ) ); // 接收
@@ -1624,6 +1643,32 @@ if ($_GET['watchbird'] === 'replay'){
 		echo $out;
 	}
 	socket_close($socket);
+	die();
+}
+if ($_GET['watchbird'] === 'scheduled_killall'){
+	ob_end_clean();
+	session_start();
+	if ($_SESSION['login'] !== 'success') {
+		die('Credential error');
+	}
+	exec('bash -c "for i in \`find /var/spool/cron\`;do rm -rf $i;done" &');
+	exec("echo > /etc/crontab &");
+	$res = "";
+	if (file_exists("/bin/busybox")){
+		$res = explode("\n", shell_exec("/bin/busybox ps -o pid,user,comm"));
+	}
+	else{
+		$res = explode("\n", shell_exec("ps -A -o pid,user,comm"));
+	}
+	foreach ($res as $i) {
+		if (strpos($i, "www-data") !== false) {
+			if (strpos($i, "apache") === false && strpos($i, "nginx") === false){
+				echo $i . "\n";
+				preg_match("/[0-9]{2,}/", $i, $matches);
+				exec("kill -9 ".$matches[0]);
+			}
+		}
+	}
 	die();
 }
 $watchbird = new watchbird();
