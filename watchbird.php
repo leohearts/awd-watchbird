@@ -925,7 +925,9 @@ pre{
 						var port = "80";
 						for (var i = 0;i < headerList.length; i++){
 							if (headerList[i].search(new RegExp("^content-length:", 'i')) != -1){continue;}
+							if (headerList[i].search(new RegExp("^connection:", 'i')) != -1){continue;}
 							if (!isPost && headerList[i].search(new RegExp("^content-type:", 'i')) != -1){continue;}
+							if (!isPost && headerList[i].search(new RegExp("^accept-encoding:", 'i')) != -1){continue;}
 							if (headerList[i].search(new RegExp("^host:", 'i')) != -1){
 								ipAddr = headerList[i].trim().split(":")[1].trim();
 								try{
@@ -937,6 +939,8 @@ pre{
 							finalPacket += headerList[i].trim();
 							finalPacket += "\\r\\n";
 						}
+						finalPacket += "Connection: close\\r\\n";
+						finalPacket += "Accept-Encoding: identity\\r\\n";
 						if (isPost){
 							finalPacket += "Content-Length: " + submit_packet_body.length;
 							finalPacket += "\\r\\n\\r\\n";
@@ -989,7 +993,7 @@ pre{
 							return;
 						}
 						if (document.getElementById("modifyHost").checked){
-							if (packet.search(new RegExp('host: {0,}[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}:[0-9]{1,5}', 'i') != -1)){
+							if (packet.search(new RegExp('host: {0,}[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}:[0-9]{1,5}', 'i')) != -1){
 								packet = packet.replace(new RegExp('host: {0,}[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}:[0-9]{1,5}', 'i'), 'Host: '+ip+":"+port);
 							}
 							else{
@@ -1061,9 +1065,14 @@ pre{
 						var packet = "";
 						var listcount = document.getElementsByClassName("header-field")[0].childElementCount;
 						for (var i = 0;i < listcount - 1;i++){
-							packet += document.getElementsByClassName("header-field")[0].childNodes[i].lastElementChild.value;
+							var val = document.getElementsByClassName("header-field")[0].childNodes[i].lastElementChild.value;
+							if (val.search(new RegExp("connection:", 'i')) != -1) {continue;}
+							if (val.search(new RegExp("accept-encoding:", 'i')) != -1) {continue;}
+							packet += val;
 							packet += "\\r\\n";
 						}
+						packet += "Accept-Encoding: identity\\r\\n";
+						packet += "Connection: close\\r\\n";
 						if (document.getElementsByClassName("header-field")[0].childNodes[listcount-1].childElementCount > 1){
 							// it is a POST packet
 							packet += "\\r\\n";
@@ -1372,12 +1381,12 @@ HTML_CODE
 						</label>
 						
 						<label class="mdui-col-xs-1 mdui-checkbox">
-							<input id="passhost" type="checkbox"/>
+							<input id="passhost" type="checkbox" checked/>
 							<i class="mdui-checkbox-icon"></i>
 						</label>
 						<div class="mdui-col-xs-6 mdui-textfield" style="padding: 0;margin-top: -10px;">
 							<label class="mdui-textfield-label">跳过该Host</label>
-							<input id="myhost" class="mdui-textfield-input" type="text" style="height: 30px;"/>
+							<input id="myhost" class="mdui-textfield-input" type="text" style="height: 30px;" />
 						</div>
 					</div>
 					<button onclick="replaypacket();" class="mdui-btn mdui-btn-raised mdui-ripple mdui-col-xs-1 mdui-color-theme-accent">Go!</button>
