@@ -234,9 +234,10 @@ function __construct(){
 			$raw_header=explode("\r\n\r\n",$this->response_content,2)[0];
 			$res_header = explode("\r\n",explode("\r\n",$raw_header,2)[1]);
 			foreach ($res_header as $leo1){
-				header($leo1,false);
+				if (stripos($leo1, 'transfer-encoding') !== false) {continue;}
+				header($leo1,true);
 			}
-			header("Content-Encoding: identity");
+			header("Content-Encoding: identity", true);
 			// while (preg_match("/^[0-9,a-z]{5}/", $co)) {
 			// 	$co = substr($co, 5);
 			// }
@@ -251,7 +252,8 @@ function __construct(){
 			if (substr($co,-7)=="\r\n0\r\n\r\n" && preg_match("/^[0-9, a-f]/", $co)){
 				// $co=rtrim($co,"\r\n0\r\n\r\n");
 				// $co .= "\r\n\r\n";
-				header("Transfer-Encoding: chunked");	// finally!
+				// header("Transfer-Encoding: chunked", true);	// finally!
+				$co = decode_chunked($co);
 			}
 			die($co);  // 将内容返回给用户
 		}
@@ -701,7 +703,16 @@ if (!function_exists('getallheaders'))
        return $headers;
     }
 }
-
+function decode_chunked($str)	//	https://stackoverflow.com/a/10859409
+{
+	for ($res = ''; !empty($str); $str = trim($str)) {
+		$pos = strpos($str, "\r\n");
+		$len = hexdec(substr($str, 0, $pos));
+		$res .= substr($str, $pos + 2, $len);
+		$str = substr($str, $pos + 2 + $len);
+	}
+	return $res;
+}
 
 class ui
 {
