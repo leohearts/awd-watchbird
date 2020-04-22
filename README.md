@@ -33,8 +33,9 @@
 1. git clone https://github.com/leohearts/awd-watchbird.git
 2. 编译waf.c生成.so文件,参考命令:gcc waf.c -shared -fPIC -o waf.so
 3. 将waf.so,watchbird.php文件存放在/var/www/html或其他目录中
+5. 将watchbird.php放在www-data可读的目录, 确保当前用户对目标目录可写, 然后执行```php watchbird.php --install [Web目录]```, 安装器将输出安装了watchbird的文件路径
 4. 访问任意启用了waf的文件, 参数```?watchbird=ui```打开watchbird控制台, 创建一个初始密码
-5. 将以下代码放入需要启用waf的php脚本的第一行`<?php include_once "/var/www/html/watchbird.php" ?>`
+6. 如需卸载, 请在相同的位置输入```php watchbird.php --uninstall [Web目录]```, 如果您多次运行了安装, 请多次运行卸载直到卸载器无输出
 
 ## 贡献者
 
