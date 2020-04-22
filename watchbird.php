@@ -566,10 +566,14 @@ function getcont(){
 		if ($this->request_data===''&&$_SERVER['REQUEST_METHOD']=="POST"){
 			$out .= getFormData();
 		}
+		stream_set_timeout($fp, 5);
 		fwrite($fp, $out);
 		//echo $out;
 		while (!feof($fp)) {
 			$tmp3 = fgets($fp, 4);
+			if ($tmp3 === false){
+				break;
+			}
 			$this->response_content .= $tmp3;
 		}
 		fclose($fp);
@@ -1726,7 +1730,9 @@ if ($_GET['watchbird'] === 'replay'){
 	stream_set_timeout($fp, 3);
 	fwrite($fp, $packet);
 	while (!feof($fp)) {
-		echo fgets($fp, 4);
+		$resp = fgets($fp, 4);
+		if ($resp === false){break;}
+		echo $resp;
 	}
 	fclose($fp);
 	// socket_write($socket, $packet, strlen($packet));
