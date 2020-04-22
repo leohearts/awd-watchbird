@@ -1572,7 +1572,7 @@ function install($dir){
 			$php_ext = ["php", "php5", "phtml"];
 			if (in_array($ext, $php_ext) && strlen($ext) !== strlen($next)){
 				$old_file_str = file_get_contents($next);
-				if (strpos($old_file_str, "<?php") !== false){
+				if (strpos($old_file_str, "<?php") !== false && $next !== __FILE__){
 					echo $next . "\n";
 					file_put_contents($next, "<?php include_once '".__FILE__."'; ?>" . $old_file_str);
 				}
