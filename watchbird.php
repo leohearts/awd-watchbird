@@ -76,6 +76,9 @@ function get_preg_flag(){  // 获取自己flag的正则表达式并保存在文�
 	$result = '';
 	$flag = file_get_contents($config->flag_path);
 	$flag = trim($flag);
+	if ($flag === ""){
+		return 'flag{sauhiudsahiudhasiuhduihwauidhwsuisdhaiuhduiahuiduishudiahusdhauwshdushuidaud|';
+	}
 	if(strlen($flag) >= 18)
 	{
 		$flag1 = substr($flag, 0, strlen($flag)/3);
@@ -1637,8 +1640,8 @@ if (!file_exists($config_path)) {
 $config = unserialize(file_get_contents($config_path));
 // 其他配置
 $waf_fake_flag2 = get_fake_flag();  //	高级的虚假flag,用于当对面即将获得flag但是被深度检测拦截的时候
-// $content_disallow = "/".get_preg_flag(). "not_a_regular_exression/i"; //  一定要保证不和正常内容冲突
-$content_disallow = '/' . trim(file_get_contents($config->flag_path)) . '/'; //  一定要保证不和正常内容冲突
+$content_disallow = "/".get_preg_flag(). "not_a_regular_exression/"; //  一定要保证不和正常内容冲突
+// $content_disallow = '/' . trim(file_get_contents($config->flag_path)) . '/'; //  一定要保证不和正常内容冲突
 foreach (get_object_vars($config) as $key => $val) {
 	$$key = $val;
 }
