@@ -1558,6 +1558,54 @@ HTML_CODE
 		die(json_encode(array_reverse($resp)));
 	}
 }
+function install($dir){
+	$layer_list = scandir($dir);
+	foreach ($layer_list as $i){
+		if ($i === '.' || $i == "..") {continue;}
+		$next = $dir . $i;
+		if (is_dir($next)){
+			if ($next[strlen($next) - 1] !== '/') {$next .= "/";}
+			install($next);
+		}
+		else{
+			$ext = end(explode('.', $next));
+			$php_ext = ["php", "php5", "phtml"];
+			if (in_array($ext, $php_ext) && strlen($ext) !== strlen($next)){
+				$old_file_str = file_get_contents($next);
+				if (strpos($old_file_str, "<?php") !== false){
+					echo $next . "\n";
+					file_put_contents($next, "<?php include_once '".__FILE__."'; ?>" . $old_file_str);
+				}
+			}
+		}
+	}
+}
+function uninstall($dir)
+{
+	$layer_list = scandir($dir);
+	foreach ($layer_list as $i) {
+		if ($i === '.' || $i == "..") {
+			continue;
+		}
+		$next = $dir . $i;
+		if (is_dir($next)) {
+			if ($next[strlen($next) - 1] !== '/') {
+				$next .= "/";
+			}
+			uninstall($next);
+		} else {
+			$ext = end(explode('.', $next));
+			$php_ext = ["php", "php5", "phtml"];
+			if (in_array($ext, $php_ext) && strlen($ext) !== strlen($next)) {
+				$old_file_str = file_get_contents($next);
+				if (strpos($old_file_str, "<?php include_once '" . __FILE__ . "'; ?>") === 0) {
+					echo $next . "\n";
+					file_put_contents($next, substr($old_file_str, strlen("<?php include_once '" . __FILE__ . "'; ?>")));
+				}
+			}
+		}
+	}
+}
 if (is_dir(dirname($config_path)) == false) {
 	mkdir(dirname($config_path), 0777, true);
 }	
@@ -1669,6 +1717,28 @@ if ($_GET['watchbird'] === 'scheduled_killall'){
 			}
 		}
 	}
+	die();
+}
+if (isset($argv[1]) && $argv[1] === "--install"){
+	if (!isset($argv[2])){
+		die("Usage: php watchbird.php --install [web dir]\n	Example: php watchbird.php --install /var/www/html");
+	}
+	$install_path = $argv[2];
+	if ($install_path[strlen($install_path) - 1] !== '/'){
+		$install_path .= "/";
+	}
+	install($install_path);
+	die();
+}
+if (isset($argv[1]) && $argv[1] === "--uninstall") {
+	if (!isset($argv[2])) {
+		die("Usage: php watchbird.php --uninstall [web dir]\n	Example: php watchbird.php --uninstall /var/www/html");
+	}
+	$install_path = $argv[2];
+	if ($install_path[strlen($install_path) - 1] !== '/') {
+		$install_path .= "/";
+	}
+	uninstall($install_path);
 	die();
 }
 $watchbird = new watchbird();
