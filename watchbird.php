@@ -1717,16 +1717,23 @@ if ($_GET['watchbird'] === 'replay'){
 		die('Credential error');
 	}
 	set_time_limit(3);
-	$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-	socket_set_option($socket,SOL_SOCKET,SO_RCVTIMEO,array("sec"=> 3, "usec"=> 0 ) ); // 接收
-	socket_set_option($socket,SOL_SOCKET,SO_SNDTIMEO,array("sec"=> 3, "usec"=> 0 ) ); // 发送 
-	socket_connect($socket, $_GET['ip'], intval($_GET['port']));
+	// $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+	// socket_set_option($socket,SOL_SOCKET,SO_RCVTIMEO,array("sec"=> 3, "usec"=> 0 ) ); // 接收
+	// socket_set_option($socket,SOL_SOCKET,SO_SNDTIMEO,array("sec"=> 3, "usec"=> 0 ) ); // 发送 
+	// socket_connect($socket, $_GET['ip'], intval($_GET['port']));
 	$packet = file_get_contents("php://input");
-	socket_write($socket, $packet, strlen($packet));
-	while ($out = socket_read($socket, 2048)) {
-		echo $out;
+	$fp = fsockopen($_GET['ip'], intval($_GET['port']), $errno, $errstr, 3);
+	stream_set_timeout($fp, 3);
+	fwrite($fp, $packet);
+	while (!feof($fp)) {
+		echo fgets($fp, 4);
 	}
-	socket_close($socket);
+	fclose($fp);
+	// socket_write($socket, $packet, strlen($packet));
+	// while ($out = socket_read($socket, 2048)) {
+	// 	echo $out;
+	// }
+	// socket_close($socket);
 	die();
 }
 if ($_GET['watchbird'] === 'scheduled_killall'){
