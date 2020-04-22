@@ -54,7 +54,7 @@ $config_path = '/tmp/watchbird/watchbird.conf';
 $check_upload_path = "/tmp/wb_check_upload";
 // $level = 4;  // 0~4 等级越高,防护能力越强,默认为4
 error_reporting(0);
-
+ob_end_clean();
 
 function is_browser($v,$vv){
     return strstr($v, $vv);
