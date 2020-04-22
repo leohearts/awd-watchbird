@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /*
 
 A Simple PHP WAF for AWD
