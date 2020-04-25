@@ -484,6 +484,7 @@ function watch_attack_keyword($str){
 
 //	记录每次大概访问记录，类似日志，以便在详细记录中查找
 function write_access_log_probably() { 
+	global $config;
 	$tmp = sha1("Syclover").$this->timestamp.sha1("Syclover");
 	$tmp .= "[" . date('H:i:s') . "]" . $_SERVER['REQUEST_METHOD'].' '.$_SERVER['REQUEST_URI'].' '.$_SERVER['SERVER_PROTOCOL'];
 	if (!empty($this->request_data)){
@@ -491,10 +492,14 @@ function write_access_log_probably() {
 	}
 	$tmp .= "\n";
 	file_put_contents($this->logdir.'all_requests'.'.txt', $tmp, FILE_APPEND | LOCK_EX);
+	if (filesize($this->logdir . 'all_requests' . '.txt') > $config->max_log_size) {
+		unlink($this->logdir . 'all_requests' . '.txt');
+	}
 }
 
 //	记录详细的访问头记录，包括GET POST http头, 以获取waf未检测到的攻击payload
 function write_access_logs_detailed(){
+	global $config;
 	$tmp = sha1("Syclover"). $this->timestamp. sha1("Syclover");
 	$tmp .= "[" . date('H:i:s') . "]\n";
 	$tmp .= "SRC IP: " . $_SERVER["REMOTE_ADDR"]."\n";
@@ -510,12 +515,16 @@ function write_access_logs_detailed(){
 	}
 	$tmp .= "\n";
 	file_put_contents($this->logdir.'web_log'.'.txt', $tmp, FILE_APPEND | LOCK_EX);
+	if (filesize($this->logdir . 'web_log' . '.txt') > $config->max_log_size) {
+		unlink($this->logdir . 'web_log' . '.txt');
+	}
 }
 	
 /*
 记录攻击payload 第一个参数为记录类型  使用时直接调用函数
 */
 function write_attack_log($alert){
+	global $config;
 	$tmp = sha1("Syclover").$this->timestamp. sha1("Syclover");
 	$tmp .= "[" . date('H:i:s') . "] {".$alert."}\n";
 	$tmp .= "SRC IP: " . $_SERVER["REMOTE_ADDR"]."\n";
@@ -530,9 +539,15 @@ function write_attack_log($alert){
 		$tmp .= "\n". $this->request_data . "\n";
 	}
 	file_put_contents($this->logdir.'under_attack_log.txt', $tmp, FILE_APPEND | LOCK_EX);
+	if (filesize($this->logdir . 'under_attack_log' . '.txt') > $config->max_log_size) {
+		unlink($this->logdir . 'under_attack_log' . '.txt');
+	}
 	if ($alert == 'Catch attack: < !!GETFLAG!! >')  // 顺便写入另外一个日志
 	{
 		file_put_contents($this->logdir.'flag_eye_to_eye.txt', $tmp, FILE_APPEND | LOCK_EX);
+		if (filesize($this->logdir . 'flag_eye_to_eye' . '.txt') > $config->max_log_size) {
+			unlink($this->logdir . 'flag_eye_to_eye' . '.txt');
+		}
 	}
 }
 
@@ -588,6 +603,7 @@ function getcont(){
 当响应包中存在flag时写入日志
 */
 function write_flag_log(){
+	global $config;
 	$tmp = sha1("Syclover").$this->timestamp.sha1("Syclover");
 	$tmp .= "[" . date('H:i:s') . "] \n";
 	$tmp .= "\nRequest:\n";
@@ -605,6 +621,9 @@ function write_flag_log(){
 	$tmp .= "\nResponse\n";
 	$tmp .= $this->response_content;
 	file_put_contents($this->logdir.'flag_log.txt', $tmp, FILE_APPEND | LOCK_EX);
+	if (filesize($this->logdir . 'flag_log' . '.txt') > $config->max_log_size) {
+		unlink($this->logdir . 'flag_log' . '.txt');
+	}
 }
 
 }
@@ -1567,9 +1586,6 @@ HTML_CODE
 		$module = $_GET['module'];
 		$logpath_curr = "/tmp/watchbird/log/" . $module . ".txt";
 		clearstatcache();
-		if (filesize($logpath_curr) > $config->max_log_size){
-			unlink($logpath_curr);
-		}
 		$log = file_get_contents($logpath_curr);
 		$resp = array();
 		$rawlog = explode('a2f5464863e4ef86d07b7bd89e815407fbfaa912', $log);
