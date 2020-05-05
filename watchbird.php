@@ -177,6 +177,11 @@ function __construct(){
 		putenv("LD_PRELOAD=" . $config->LDPRELOAD_PATH);
 	}
 	$this->headers = getallheaders(); //获取header  
+	foreach ($this->headers as $key => $val){
+		if ($val == ""){
+			unset($this->headers[$key]);
+		}
+	}
 	$this->timestamp = getMillisecond();
 	if ($config->open_basedir !== '/') {
 		ini_set("open_basedir", $config->open_basedir . ':/tmp/');
