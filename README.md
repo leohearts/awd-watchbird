@@ -1,10 +1,9 @@
-<div style="width: 100%;text-align: center;">
-<image style="height:200px;display:inline" src="https://ytoworld.tk/?watchbird=resource&resource=logo" />
-<h1>Watchbird</h1>
-<small>Version 1.4</small>
-
-<b><i>A powerful PHP WAF for AWD</i></b>
-</div>
+<p align="center">
+<image style="height:200px;display:inline" src="https://ytoworld.tk/?watchbird=resource&resource=logo" height="200px" />
+<h1 align="center">Watchbird</h1>
+<small><p align="center">Version 1.4</p></small>
+<b><i><p align="center">A powerful PHP WAF for AWD</p></i></b>
+</p>
 
 ## 功能:
 
