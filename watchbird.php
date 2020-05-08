@@ -803,6 +803,7 @@ textarea{font-family: monospace !important;}
 .logger .mdui-col {
   margin: 20px 20px;
   max-width: 45%;
+  min-width: 400px;
   height: 45%;
 }
 .logcontainer .mdui-card{
@@ -815,6 +816,9 @@ textarea{font-family: monospace !important;}
 }
 .logger div.mdui-col{
   overflow: auto;
+}
+.dest-selector-multi{
+  min-width: 42px;
 }
 pre{
   font-family: Arial, Helvetica, sans-serif;
@@ -1109,7 +1113,12 @@ pre{
 						}
 						document.getElementsByClassName("repeater")[0].style.width = 1500;
 						document.getElementsByClassName("repeater")[0].style.maxWidth = "95%";
-						document.getElementsByClassName("repeater")[0].classList.add("mdui-row-xs-2")
+						if(document.body.clientWidth > 500){
+							document.getElementsByClassName("repeater")[0].classList.add("mdui-row-xs-2");
+						}
+						else {
+							document.getElementsByClassName("repeater")[0].style.overflow = "scroll";
+						}
 						document.getElementsByClassName("responsebox")[0].style.display = "block";
 						document.getElementsByClassName("responsebox")[0].prepend(document.createElement("br"));
 						var newdelimiter = document.createElement("div");
@@ -1395,13 +1404,13 @@ HTML_CODE
 		</div>
 		<div id="repeater" class="mdui-dialog repeater" style="transition: all .15s linear 0s;">
 			<div class="mdui-dialog-content mdui-col" style="scrollbar-width: none;">
-				<div class="mdui-dialog-title mdui-row">
+				<div class="mdui-dialog-title mdui-row" style="display: flex;">
 					<div class="mdui-col-xs-4">重放</div>
 					<div class="mdui-col-xs-6 mdui-row" style="height: 10px;">
 						<label class="mdui-col-xs-4 mdui-checkbox">
 							<input id="modifyHost" type="checkbox" checked/>
 							<i class="mdui-checkbox-icon"></i>
-							<small style="margin-left: 15px;" class="mdui-textfield-label">修改Host头</small>
+							<small style="margin-left: 15px;" class="mdui-textfield-label">修改Host</small>
 						</label>
 						
 						<label class="mdui-col-xs-1 mdui-checkbox">
@@ -1449,7 +1458,7 @@ HTML_CODE
 						</div>
 					</div>
 				</div>
-				<div class="dest-selector mdui-row" style="text-align:center">
+				<div class="dest-selector mdui-row" style="text-align:center;">
 					<div class="dest-selector-multi mdui-col-xs-1">
 						<div class="mdui-textfield">
 							<input class="mdui-textfield-input" type="text" placeholder="ip.start" value="192"/>
@@ -1482,15 +1491,15 @@ HTML_CODE
 							<input class="mdui-textfield-input" type="text" value="100"/>
 						</div>
 					</div>
-					<div class="dest-selector-multi mdui-col-xs-1"></div>
+					<div class="dest-selector-multi mdui-col-xs-1" style="min-width: 0px;"></div>
 					<div class="dest-selector-multi mdui-col-xs-1">
 						<div class="mdui-textfield">
 							<input class="mdui-textfield-input" type="text" value="1" />
 							<label class="mdui-textfield-label">步进</label>
 						</div>
 					</div>
-					<div class="dest-selector-multi mdui-col-xs-1"></div>
-					<div class="dest-selector-multi mdui-col-xs-1"></div>
+					<div class="dest-selector-multi mdui-col-xs-1" style="min-width: 0;"></div>
+					<div class="dest-selector-multi mdui-col-xs-1" style="min-width: 0;"></div>
 					<div class="dest-selector-multi mdui-col-xs-1">
 						<div class="mdui-textfield">
 							<input class="mdui-textfield-input" type="text" placeholder="port.start" value="80"/>
@@ -1500,8 +1509,8 @@ HTML_CODE
 							value="80"/>
 						</div>
 					</div>
-					<div class="dest-selector-multi mdui-col-xs-1"></div>
-					<div class="dest-selector-multi mdui-col-xs-1">
+					<div class="dest-selector-multi mdui-col-xs-1" style="min-width: 0;"></div>
+					<div class="dest-selector-multi mdui-col-xs-1" style="right: 0;position: absolute;">
 						<div class="mdui-textfield">
 							<input class="mdui-textfield-input" type="text" value="1" />
 							<label class="mdui-textfield-label">步进</label>
