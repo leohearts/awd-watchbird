@@ -242,7 +242,7 @@ function __construct(){
 				if (stripos($leo1, 'transfer-encoding') !== false) {continue;}
 				header($leo1,true);
 			}
-			header("Content-Encoding: identity", true);
+			// header("Content-Encoding: identity", true);
 			// while (preg_match("/^[0-9,a-z]{5}/", $co)) {
 			// 	$co = substr($co, 5);
 			// }
