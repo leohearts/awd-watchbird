@@ -1618,20 +1618,100 @@ HTML_CODE
 function install($dir){
 	$layer_list = scandir($dir);
 	foreach ($layer_list as $i){
-		if ($i === '.' || $i == "..") {continue;}
-		$next = $dir . $i;
-		if (is_dir($next)){
-			if ($next[strlen($next) - 1] !== '/') {$next .= "/";}
-			install($next);
+		if ($i === '.' || $i === "..") {
+			continue;
 		}
-		else{
+		$next = $dir . $i;
+		if (is_dir($next)) {
+			if ($next[strlen($next) - 1] !== '/') {
+				$next .= "/";
+			}
+			install($next);
+		} else {
 			$ext = end(explode('.', $next));
 			$php_ext = ["php", "php5", "phtml"];
-			if (in_array($ext, $php_ext) && strlen($ext) !== strlen($next)){
+			if (in_array($ext, $php_ext) && strlen($ext) !== strlen($next)) {
 				$old_file_str = file_get_contents($next);
-				if (strpos($old_file_str, "<?php") !== false && $next !== __FILE__){
+				if (strpos($old_file_str, "<?php") !== false && $next !== __FILE__) {
 					echo $next . "\n";
-					file_put_contents($next, "<?php include_once '".__FILE__."'; ?>" . $old_file_str);
+					$start_pos = strpos($old_file_str, "<?php");
+					if ($start_pos === false) {
+						return;
+					}
+					$first_code_pos1 = strpos($old_file_str, ";", $start_pos);
+					$first_code_pos2 = strpos($old_file_str, "{", $start_pos);
+
+					if ($first_code_pos1 === false) {
+						$first_code_pos = $first_code_pos2;
+					} else if ($first_code_pos2 === false) {
+						$first_code_pos = $first_code_pos1;
+					} else $first_code_pos = min($first_code_pos1, $first_code_pos2);
+					if ($first_code_pos === false) {
+						return;
+					}
+					while (strrpos(substr($old_file_str, $start_pos, $first_code_pos - $start_pos), "/*") !== false || strrpos(substr($old_file_str, $start_pos, $first_code_pos - $start_pos), "//") !== false || strrpos(substr($old_file_str, $start_pos, $first_code_pos - $start_pos), "#") !== false) {
+						if (strrpos(substr($old_file_str, $start_pos, $first_code_pos - $start_pos), "/*") !== false) {
+							$start_pos = strpos($old_file_str, "*/", strrpos(substr($old_file_str, $start_pos, $first_code_pos - $start_pos), "/*") + $start_pos);
+							if ($start_pos === false) {
+								return;
+							}
+							$first_code_pos1 = strpos($old_file_str, ";", $start_pos);
+							$first_code_pos2 = strpos($old_file_str, "{", $start_pos);
+
+							if ($first_code_pos1 === false) {
+								$first_code_pos = $first_code_pos2;
+							} else if ($first_code_pos2 === false) {
+								$first_code_pos = $first_code_pos1;
+							} else $first_code_pos = min($first_code_pos1, $first_code_pos2);
+							if ($first_code_pos === false) {
+								return;
+							}
+						}
+						if (strrpos(substr($old_file_str, $start_pos, $first_code_pos - $start_pos), "//") !== false) {
+							$start_pos = strpos($old_file_str, "\n", strrpos(substr($old_file_str, $start_pos, $first_code_pos - $start_pos), "//") + $start_pos);
+							if ($start_pos === false) {
+								return;
+							}
+							$first_code_pos1 = strpos($old_file_str, ";", $start_pos);
+							$first_code_pos2 = strpos($old_file_str, "{", $start_pos);
+
+							if ($first_code_pos1 === false) {
+								$first_code_pos = $first_code_pos2;
+							} else if ($first_code_pos2 === false) {
+								$first_code_pos = $first_code_pos1;
+							} else $first_code_pos = min($first_code_pos1, $first_code_pos2);
+							if ($first_code_pos === false) {
+								return;
+							}
+						}
+						
+						if (strrpos(substr($old_file_str, $start_pos, $first_code_pos - $start_pos), "#") !== false) {
+							$start_pos = strpos($old_file_str, "\n", strrpos(substr($old_file_str, $start_pos, $first_code_pos - $start_pos), "#") + $start_pos);
+							if ($start_pos === false) {
+								return;
+							}
+							$first_code_pos1 = strpos($old_file_str, ";", $start_pos);
+							$first_code_pos2 = strpos($old_file_str, "{", $start_pos);
+
+							if ($first_code_pos1 === false) {
+								$first_code_pos = $first_code_pos2;
+							} else if ($first_code_pos2 === false) {
+								$first_code_pos = $first_code_pos1;
+							} else $first_code_pos = min($first_code_pos1, $first_code_pos2);
+							if ($first_code_pos === false) {
+								return;
+							}
+						}
+					}
+					if (preg_match("/namespace/i", substr($old_file_str, $start_pos, $first_code_pos - $start_pos)) === 1){
+						return;	// 一般来说, 只要加在入口文件即可
+					}
+					else if (preg_match("/declare {0,}\t{0,}\\(/i", substr($old_file_str, $start_pos, $first_code_pos - $start_pos)) === 1){
+						file_put_contents($next, substr($old_file_str, 0, $first_code_pos + 1)."\ninclude_once '" . __FILE__ . "';\n" . substr($old_file_str, $first_code_pos + 1));
+					}
+					else {
+						file_put_contents($next, "<?php include_once '".__FILE__."'; ?>" . $old_file_str);
+					}
 				}
 			}
 		}
@@ -1655,9 +1735,12 @@ function uninstall($dir)
 			$php_ext = ["php", "php5", "phtml"];
 			if (in_array($ext, $php_ext) && strlen($ext) !== strlen($next)) {
 				$old_file_str = file_get_contents($next);
-				if (strpos($old_file_str, "<?php include_once '" . __FILE__ . "'; ?>") === 0) {
+				if (strpos(ltrim($old_file_str), "<?php include_once '" . __FILE__ . "'; ?>") === 0) {
 					echo $next . "\n";
 					file_put_contents($next, substr($old_file_str, strlen("<?php include_once '" . __FILE__ . "'; ?>")));
+				}
+				else {
+					file_put_contents($next, str_replace("\ninclude_once '" . __FILE__ . "';\n", "", $old_file_str));
 				}
 			}
 		}
