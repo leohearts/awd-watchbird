@@ -2,9 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 __attribute__((constructor)) watchbird(int argc, char *argv[]) {
-    // exit(); // 去掉这个注释就可以禁止任何程序通过php执行
     int isFirstrun = 1;
-    
     int isenv = !strcmp(argv[0], "env");
     for (int i = 0; i < argc; i++) {
         if (isenv){
@@ -25,7 +23,7 @@ __attribute__((constructor)) watchbird(int argc, char *argv[]) {
                         putenv("waf_firstrun=no");
                     }
                     printf("hhhh, you want env?");
-                    exit(1);
+                    exit(0);
                 }
         }
         if (strstr(argv[i], "flag") != NULL ||
@@ -45,7 +43,10 @@ __attribute__((constructor)) watchbird(int argc, char *argv[]) {
                     putenv("waf_firstrun=no");
                 }
                 printf("hhhh");
-                exit(1);
+                exit(0);
             }
     }
+
+    // exit(0); // 去掉这个注释就可以禁止任何程序通过php执行
+    
 }
