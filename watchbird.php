@@ -854,6 +854,17 @@ pre{
                             document.cookie = "theme=light";
                         }
                     }
+					async function checkLocalReplayerAvailablility(){
+						await fetch(document.getElementById("replayer_addr").value + "?watchbird=checkExistence")
+							.then(function(Response) {
+								return Response.text()
+							})
+							.then(function(txt) {
+								if (txt == "I'm still alive"){
+									document.getElementById("use_custom_replayer").checked = true;
+								}
+							})
+					}
                     document.addEventListener("DOMContentLoaded",function () {
                         if (document.cookie.replace(/(?:(?:^|.*;\s*)theme\s*\=\s*([^;]*).*$)|^.*$/, "$1") == "dark"){
                             changetheme();
@@ -867,6 +878,9 @@ pre{
 						if (document.cookie.replace(/(?:(?:^|.*;\s*)flag_regex\s*\=\s*([^;]*).*$)|^.*$/, "$1") != ""){
                             document.getElementById("flag_regex").value = unescape(document.cookie.replace(/(?:(?:^|.*;\s*)flag_regex\s*\=\s*([^;]*).*$)|^.*$/, "$1"));
 						}
+						if (document.cookie.replace(/(?:(?:^|.*;\s*)replayer_addr\s*\=\s*([^;]*).*$)|^.*$/, "$1") != ""){
+                            document.getElementById("replayer_addr").value = unescape(document.cookie.replace(/(?:(?:^|.*;\s*)replayer_addr\s*\=\s*([^;]*).*$)|^.*$/, "$1"));
+						}
 						startDaemon();
 						startKillallTimer();
 						Notification.requestPermission().then(function (permission) {
@@ -876,6 +890,7 @@ pre{
 								console.log('用户拒绝通知');
 							}
 						});
+						checkLocalReplayerAvailablility();
                     });
 					async function startKillallTimer(){
 						document.getElementById("config_scheduled_killall").nextElementSibling.nextSibling.textContent = "每分钟自动关闭所有Web进程并清理Crontab";
@@ -1028,7 +1043,11 @@ pre{
 								packet = packet.replace(new RegExp('host: {0,}[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}', 'i'), 'Host: '+ip+":"+port);
 							}
 						}
-						await fetch("?watchbird=replay&ip="+ip+"&port="+port, {
+						var FinalFetchUrl = "?watchbird=replay&ip="+ip+"&port="+port;
+						if (document.getElementById("use_custom_replayer").checked){
+							FinalFetchUrl = document.getElementById("replayer_addr").value + FinalFetchUrl;
+						}
+						await fetch(FinalFetchUrl, {
 							body: packet,
 							method: 'POST',
 						}).then(function(response) {
@@ -1128,6 +1147,7 @@ pre{
 						document.cookie = "submit_packet_header="+escape(document.getElementById("submit_packet_header").value);
 						document.cookie = "submit_packet_body="+escape(document.getElementById("submit_packet_body").value);
 						document.cookie = "flag_regex="+escape(document.getElementById("flag_regex").value);
+						document.cookie = "replayer_addr=" + escape(document.getElementById("replayer_addr").value);
 						var domInputNodes = document.getElementsByClassName("dest-selector-multi");
 						var ip_part1_start = domInputNodes[0].querySelectorAll("input")[0].value - 0;
 						var ip_part1_end = domInputNodes[0].querySelectorAll("input")[1].value - 0;
@@ -1405,9 +1425,9 @@ HTML_CODE
 		<div id="repeater" class="mdui-dialog repeater" style="transition: all .15s linear 0s;">
 			<div class="mdui-dialog-content mdui-col" style="scrollbar-width: none;">
 				<div class="mdui-dialog-title mdui-row" style="display: flex;">
-					<div class="mdui-col-xs-4">重放</div>
-					<div class="mdui-col-xs-6 mdui-row" style="height: 10px;">
-						<label class="mdui-col-xs-4 mdui-checkbox">
+					<div class="mdui-col-xs-2">重放</div>
+					<div class="mdui-col-xs-8 mdui-row" style="height: 10px;">
+						<label class="mdui-col-xs-3 mdui-checkbox">
 							<input id="modifyHost" type="checkbox" checked/>
 							<i class="mdui-checkbox-icon"></i>
 							<small style="margin-left: 15px;" class="mdui-textfield-label">修改Host</small>
@@ -1417,9 +1437,18 @@ HTML_CODE
 							<input id="passhost" type="checkbox" checked/>
 							<i class="mdui-checkbox-icon"></i>
 						</label>
-						<div class="mdui-col-xs-6 mdui-textfield" style="padding: 0;margin-top: -10px;">
+						<div class="mdui-col-xs-3 mdui-textfield" style="padding: 0;margin-top: -10px;">
 							<label class="mdui-textfield-label">跳过该Host</label>
 							<input id="myhost" class="mdui-textfield-input" type="text" style="height: 30px;" />
+						</div>
+
+						<label class="mdui-col-xs-1 mdui-checkbox" style="right:-10px">
+							<input id="use_custom_replayer" type="checkbox"/>
+							<i class="mdui-checkbox-icon"></i>
+						</label>
+						<div class="mdui-col-xs-4 mdui-textfield" style="padding: 0;margin-top: -10px;" title="使用存在本地web服务器的watchbird发包, 应对靶机间不能互联的情况. 使用方法: 将watchbird.php放在本地服务器的根目录, 或一个任意目录, 然后修改本地发包器的值. 本选项默认关闭, 将在检测到本地发包器存在时自动开启.">
+							<label class="mdui-textfield-label">本地发包器</label>
+							<input id="replayer_addr" class="mdui-textfield-input" type="text" style="height: 30px;" value="http://127.0.0.1/watchbird.php"/>
 						</div>
 					</div>
 					<button onclick="replaypacket();" class="mdui-btn mdui-btn-raised mdui-ripple mdui-col-xs-1 mdui-color-theme-accent">Go!</button>
@@ -1839,7 +1868,7 @@ if ($_GET['watchbird'] === 'resource'){
 if ($_GET['watchbird'] === 'replay'){
 	ob_end_clean();
 	session_start();
-	if ($_SESSION['login'] !== 'success') {
+	if ($_SESSION['login'] !== 'success' && $_SERVER['REMOTE_ADDR'] !== '127.0.0.1') {
 		die('Credential error');
 	}
 	set_time_limit(3);
@@ -1863,6 +1892,9 @@ if ($_GET['watchbird'] === 'replay'){
 	// }
 	// socket_close($socket);
 	die();
+}
+if ($_GET['watchbird'] === 'checkExistence'){
+	die("I'm still alive");
 }
 if ($_GET['watchbird'] === 'scheduled_killall'){
 	ob_end_clean();
