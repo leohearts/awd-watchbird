@@ -1,3 +1,5 @@
+> 前几天某次线下扫到5个人用watchbird, 比赛禁止用第三方防御软件, 当时官方就来找我了, 淦哦. 虽然经过考虑还是会继续维护项目, 但还是希望大家只是把它当作一个防御学习的参考, 自己写脚本, 不要直接拿来用. 说了不要打比赛用, 非要上, awd就没意思了. 
+
 <p align="center">
 <image style="height:200px;display:inline" src="https://leohearts.com/?watchbird=resource&resource=logo" height="200px" />
 <h1 align="center">Watchbird</h1>
