@@ -3,7 +3,7 @@
 > 本项目禁止用于比赛. 如果您需要一个比赛场景下的WAF, 可以考虑[DasSecurity-Labs/AoiAWD](https://github.com/DasSecurity-Labs/AoiAWD). (但请注意规则是否允许第三方通防)
 
 <p align="center">
-<image style="height:200px;display:inline" src="https://leohearts.com/?watchbird=resource&resource=logo" height="200px" />
+<image style="height:200px;display:inline" src="https://i.loli.net/2021/03/05/tf9qvH5CXwGE81D.png" height="200px" />
 <h1 align="center">Watchbird</h1>
 <small><p align="center">Version 1.4</p></small>
 <b><i><p align="center">A powerful PHP WAF for AWD</p></i></b>
