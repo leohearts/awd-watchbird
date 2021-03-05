@@ -1,5 +1,3 @@
-> 前几天某次线下扫到5个人用watchbird, 比赛禁止用第三方防御软件, 当时官方就来找我了, 淦哦. 虽然经过考虑还是会继续维护项目, 但还是希望大家只是把它当作一个防御学习的参考, 自己写, 不要直接拿来用.
->
 > 本项目禁止用于比赛. 如果您需要一个比赛场景下的WAF, 可以考虑[DasSecurity-Labs/AoiAWD](https://github.com/DasSecurity-Labs/AoiAWD). (但请注意规则是否允许第三方通防)
 
 <p align="center">
