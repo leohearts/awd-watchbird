@@ -41,6 +41,14 @@
 4. 访问任意启用了waf的文件, 参数```?watchbird=ui```打开watchbird控制台, 创建一个初始密码
 6. 如需卸载, 请在相同的位置输入```php watchbird.php --uninstall [Web目录]```, 如果您多次运行了安装, 请多次运行卸载直到卸载器无输出
 
+## 截图
+
+![Screenshot_2021-03-08 Watchbird控制台.png](https://i.loli.net/2021/03/08/DELBdIMxyCgtluf.png)
+
+![Screenshot_2021-03-08 Watchbird控制台_1_.png](https://i.loli.net/2021/03/08/6jyrWYUxIXMsqpl.png)
+
+![Screenshot_2021-03-08 Watchbird控制台_2_.png](https://i.loli.net/2021/03/08/RnY7VAZtJmIeKoX.png)
+
 ## 贡献者
 
 - *Leohearts*
