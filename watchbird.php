@@ -1223,9 +1223,9 @@ pre{
 						if (module == 'flag_log' && timestampflag_log > 0){
 							await sendnoti('深度防御拦截了一次有效攻击', '查看flag_log以获取详细信息');
 						}
-						if (module == "rce_log"){
-							if (timestamprce_log > 0){
-								await sendnoti('RCE防护拦截了一次有效攻击', '查看rce_log以获取详细信息');
+						if (module == "under_attack_log"){
+							if (timestampunder_attack_log > 0){
+								await sendnoti('RCE防护拦截了一次有效攻击', '查看under_attack_log以获取详细信息');
 							}
 							var cpydiv = document.getElementById("web_log" + id).cloneNode(true);
 							cpydiv.id = module + id;
@@ -1267,11 +1267,11 @@ pre{
 					var timestampflag_eye_to_eye = 0;
 					var timestampflag_log = 0;
 					var timestampall_requests = 0;
-					var timestamprce_log = 0;
+					var timestampunder_attack_log = 0;
 					var timestampweb_log = 0;
 
 					async function checklog(){
-						var modulelist = ['web_log', 'rce_log', 'flag_eye_to_eye', 'flag_log'];
+						var modulelist = ['web_log', 'under_attack_log', 'flag_eye_to_eye', 'flag_log'];
 						for (var co = 0 ;co<modulelist.length;co++){
 							var module = modulelist[co];
 							var doReplay = true;
@@ -1399,8 +1399,8 @@ HTML_CODE
 				<div class="mdui-container-fluid logcontainer">
 				</div>
 			</div>
-			<div id="rce_log" class="mdui-shadow-5 mdui-col mdui-hoverable ">
-				<p style="width: 60%;display: inline-flex;left: 20px;position: relative;">rce_log</p>
+			<div id="under_attack_log" class="mdui-shadow-5 mdui-col mdui-hoverable ">
+				<p style="width: 60%;display: inline-flex;left: 20px;position: relative;">under_attack_log</p>
 				<label class="mdui-checkbox">
 					<input type="checkbox" checked />
 					<i class="mdui-checkbox-icon"></i>
