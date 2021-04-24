@@ -17,7 +17,7 @@ A Simple PHP WAF for AWD
 Credits:
 	[AWD_PHP watchbird] (Original WAF Framework)
 	[Longlone](https://github.com/WAY29) (Main developer)
-	[Leohearts](https://ytoworld.tk) (Main developer)
+	[Leohearts](https://leohearts.com) (Main developer)
 	[guoqing](https://blog.izgq.net/archives/1029/) (Function: getFormData(), Regenerating RAW multipart/form-data post data), 已联系授权
 
 Lisence:
