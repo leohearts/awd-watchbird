@@ -849,17 +849,27 @@ pre{
                         var inst = new mdui.Drawer(document.getElementsByClassName("mdui-drawer")[0]);
                         inst.toggle();
                     }
+
+					function getLocalConfig(ConfigItem){
+						var ret = localStorage.getItem(ConfigItem);
+						return ret;
+					}
+
+					function setLocalConfig(ConfigItem, value) {
+						return localStorage.setItem(ConfigItem, value);
+					}
+
                     function changetheme() {
                         var body = document.querySelector("body");
                         var res = body.classList.replace("mdui-theme-layout-dark", "mdui-theme-primary-teal");
                         if (!res){
                             body.classList.replace("mdui-theme-primary-teal", "mdui-theme-layout-dark");
                             body.classList.remove("mdui-theme-accent-pink");
-                            document.cookie = "theme=dark";
+                            setLocalConfig("theme", "dark");
                         }
                         else{
                             body.classList.add("mdui-theme-accent-pink");
-                            document.cookie = "theme=light";
+                            setLocalConfig("theme", "light");
                         }
                     }
 					async function checkLocalReplayerAvailablility(){
@@ -874,20 +884,20 @@ pre{
 							})
 					}
                     document.addEventListener("DOMContentLoaded",function () {
-                        if (document.cookie.replace(/(?:(?:^|.*;\s*)theme\s*\=\s*([^;]*).*$)|^.*$/, "$1") == "dark"){
+                        if (getLocalConfig("theme") == "dark"){
                             changetheme();
 						}
-						if (document.cookie.replace(/(?:(?:^|.*;\s*)submit_packet_body\s*\=\s*([^;]*).*$)|^.*$/, "$1") != ""){
-                            document.getElementById("submit_packet_body").value = unescape(document.cookie.replace(/(?:(?:^|.*;\s*)submit_packet_body\s*\=\s*([^;]*).*$)|^.*$/, "$1"));
+						if (getLocalConfig("submit_packet_body") != null){
+                            document.getElementById("submit_packet_body").value = getLocalConfig("submit_packet_body");
 						}
-						if (document.cookie.replace(/(?:(?:^|.*;\s*)submit_packet_header\s*\=\s*([^;]*).*$)|^.*$/, "$1") != ""){
-                            document.getElementById("submit_packet_header").value = unescape(document.cookie.replace(/(?:(?:^|.*;\s*)submit_packet_header\s*\=\s*([^;]*).*$)|^.*$/, "$1"));
+						if (getLocalConfig("submit_packet_header") != null){
+                            document.getElementById("submit_packet_header").value = getLocalConfig("submit_packet_header");
 						}
-						if (document.cookie.replace(/(?:(?:^|.*;\s*)flag_regex\s*\=\s*([^;]*).*$)|^.*$/, "$1") != ""){
-                            document.getElementById("flag_regex").value = unescape(document.cookie.replace(/(?:(?:^|.*;\s*)flag_regex\s*\=\s*([^;]*).*$)|^.*$/, "$1"));
+						if (getLocalConfig("flag_regex") != null){
+                            document.getElementById("flag_regex").value = getLocalConfig("flag_regex");
 						}
-						if (document.cookie.replace(/(?:(?:^|.*;\s*)replayer_addr\s*\=\s*([^;]*).*$)|^.*$/, "$1") != ""){
-                            document.getElementById("replayer_addr").value = unescape(document.cookie.replace(/(?:(?:^|.*;\s*)replayer_addr\s*\=\s*([^;]*).*$)|^.*$/, "$1"));
+						if (getLocalConfig("replayer_addr") != null){
+                            document.getElementById("replayer_addr").value = getLocalConfig("replayer_addr");
 						}
 						startDaemon();
 						startKillallTimer();
@@ -1152,10 +1162,10 @@ pre{
 						newdelimiter.classList.add("mdui-divider");
 						document.getElementsByClassName("responsebox")[0].prepend(newdelimiter);
 						document.getElementsByClassName("responsebox")[0].prepend(document.createElement("br"));
-						document.cookie = "submit_packet_header="+escape(document.getElementById("submit_packet_header").value);
-						document.cookie = "submit_packet_body="+escape(document.getElementById("submit_packet_body").value);
-						document.cookie = "flag_regex="+escape(document.getElementById("flag_regex").value);
-						document.cookie = "replayer_addr=" + escape(document.getElementById("replayer_addr").value);
+						setLocalConfig("submit_packet_header", document.getElementById("submit_packet_header").value);
+						setLocalConfig("submit_packet_body", document.getElementById("submit_packet_body").value);
+						setLocalConfig("flag_regex", document.getElementById("flag_regex").value);
+						setLocalConfig("replayer_addr", document.getElementById("replayer_addr").value);
 						var domInputNodes = document.getElementsByClassName("dest-selector-multi");
 						var ip_part1_start = domInputNodes[0].querySelectorAll("input")[0].value - 0;
 						var ip_part1_end = domInputNodes[0].querySelectorAll("input")[1].value - 0;
