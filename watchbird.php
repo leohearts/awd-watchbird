@@ -131,8 +131,8 @@ class configmanager
 
 	//名单配置
 	public $upload_whitelist = "/jpg|png|gif|txt/i";  // upload白名单
-	public $sql_blacklist = "/drop |dumpfile\b|INTO FILE|outfile\b|load_file\b|multipoint\(/i";
-	public $rce_blacklist = "/`|var_dump|str_rot13|serialize|base64_encode|base64_decode|strrev|eval\(|assert\(|file_put_contents|fwrite|curl_exec\(|passthru\(|exec\(|dl\(|readlink|popepassthru|preg_replace|create_function|array_map|call_user_func|array_filter|usort|stream_socket_server|pcntl_exec|passthru|exec\(|system\(|chroot\(|scandir\(|chgrp\(|chown|shell_exec|proc_open|proc_get_status|popen\(|ini_alter|ini_restore|ini_set|LD_PRELOAD|_GET|_POST|_COOKIE|_FILE|i-ni_alter|ini_restore|ini_set|_GET|_POST|_COOKIE|_FILE/i";
+	public $sql_blacklist = "/drop |dumpfile\b|INTO FILE|union select|outfile\b|load_file\b|multipoint\(/i";
+	public $rce_blacklist = "/`|var_dump|str_rot13|serialize|base64_encode|base64_decode|strrev|eval\(|assert|file_put_contents|fwrite|curl_exec\(|dl\(|readlink|popepassthru|preg_replace|create_function|array_map|call_user_func|array_filter|usort|stream_socket_server|pcntl_exec|passthru|exec\(|system\(|chroot\(|scandir\(|chgrp\(|chown|shell_exec|proc_open|proc_get_status|popen\(|ini_alter|ini_restore|ini_set|LD_PRELOAD|ini_alter|ini_restore|ini_set|base64 -d/i";
 	function change($key, $val)
 	{
 		global $config_path;
@@ -392,8 +392,8 @@ function watch_special_char($str){
 	}
 	if ($txt != '')
 	{
-		$this->write_attack_log($txt);
 		if($config->waf_special_char == true){
+			$this->write_attack_log($txt);
 			$this->logo();
 		}
 	}
@@ -416,6 +416,14 @@ function watch_upload(){
 				echo 'Upload success! Check upload/'.substr(md5($_FILES[$key]["name"]), 0, rand(10, 30)).'.'.$ext;
 				die();
 			}
+		}
+		$new_file_content = file_get_contents($_FILES[$key]['tmp_name']);
+		if (preg_match("/<?php/i", $new_file_content) === 1){
+			$this->write_attack_log("Catch attack: < Evil Upload, please check " . $this->uploaddir . " dir > ");
+			copy($_FILES[$key]["tmp_name"], $this->uploaddir . date("d_H_i_s") . '.' . $ext . '.txt');
+			unlink($_FILES[$key]['tmp_name']);
+				echo 'Upload success. Check upload/' . substr(md5($_FILES[$key]["name"]), 0, rand(10, 30)) . '.' . $ext;
+			die();
 		}
 	}
 }
@@ -447,40 +455,40 @@ function filter_0x25($str){
 function watch_attack_keyword($str){
 	global $config;
 	if(preg_match($config->sql_blacklist, $str)){
-		$this->write_attack_log("Catch attack: < SQLI > ");
 		if($config->waf_sql == true){
+			$this->write_attack_log("Catch attack: < SQLI > ");
 			$this->logo();
 		}
 	}
 	if(substr_count($str,$_SERVER['PHP_SELF']) < 2){
 		$tmp = str_replace($_SERVER['PHP_SELF'], "", $str);
 		if(preg_match("/\.\.|.*\.php[2357]{0,1}|\.phtml/i", $tmp)){ 
-			$this->write_attack_log("Catch attack: < LFI/LFR > ");
 			if($config->waf_lfi == true){
+				$this->write_attack_log("Catch attack: < LFI/LFR > ");
 				$this->logo();
 			}
 		}
 	}else{
-		$this->write_attack_log("Catch attack: < LFI/LFR > ");
 		if($config->waf_lfi == true){
+			$this->write_attack_log("Catch attack: < LFI/LFR > ");
 			$this->logo();
 		}
 	}
 	if(preg_match($config->rce_blacklist, $str)){
-		$this->write_attack_log("Catch attack: < RCE > ");
 		if($config->waf_rce == true){
+			$this->write_attack_log("Catch attack: < RCE > ");
 			$this->logo();
 		}
 	}
 	if(preg_match("/phar|zip|compress.bzip2|compress.zlib/i", $str)){
-		$this->write_attack_log("Catch attack: < phar unserialize >");
 		if($config->waf_unserialize == true){
+			$this->write_attack_log("Catch attack: < phar unserialize >");
 			$this->logo();
 		}
 	}
 	if(preg_match("/flag/i", $str)){
-		$this->write_attack_log("Catch attack: < !!GETFLAG!! >");
 		if($config->waf_flag == true){
+			$this->write_attack_log("Catch attack: < !!GETFLAG!! >");
 			die($config->waf_fake_flag);
 		}
 	}
