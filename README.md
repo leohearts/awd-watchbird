@@ -58,5 +58,6 @@
 
 - *Leohearts*
 - *Longlone*
+- *你* (欢迎Issue及Pull Request)
 
 <b>本项目的开发仅出于研究目的, 请不要在比赛中使用.</b>
