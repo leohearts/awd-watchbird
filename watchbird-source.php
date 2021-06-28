@@ -1869,10 +1869,18 @@ if ($_GET['watchbird'] === 'resource'){
 		header("Content-type: application/octet-stream", true);
 	}
 	else{
-		header("Content-type: text/plain", true);
-	}
-	if ($_GET['resource'] == 'logo'){
+		if ($_GET['resource'] == 'js'){
+                header("Content-type: application/javascript", true);
+        }else{
+		if ($_GET['resource'] == 'css'){
+                header("Content-type: text/css", true);
+        }else{
+			if ($_GET['resource'] == 'logo'){
 		header("Content-type: image/svg+xml", true);
+	}else{
+		header("Content-type: text/plain", true);}
+	     }
+		}
 	}
 	$ui = new ui();
 	$resource_name = 'mdui_' . $_GET['resource'];
