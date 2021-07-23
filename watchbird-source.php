@@ -790,6 +790,7 @@ SVG_RESOURCE;
 		print(<<<HTML_CODE
         <html>
             <head>
+                <meta charset="UTF-8">
 				<title>Watchbird控制台</title>
 				<link rel="shortcut icon" href="?watchbird=resource&resource=logo">
                 <link rel="stylesheet" href="?watchbird=resource&resource=css">
@@ -1568,6 +1569,7 @@ HTML_CODE
 		echo(<<<HTML_CODE
         <html>
             <head>
+                <meta charset="UTF-8">
                 <title>Login - Watchbird</title>
                 <link rel="stylesheet" href="?watchbird=resource&resource=css">
                 <script src="?watchbird=resource&resource=js"></script>
