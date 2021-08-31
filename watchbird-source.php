@@ -969,6 +969,7 @@ pre{
 					async function submitFlag(flag){
 						var submit_packet_header = document.getElementById("submit_packet_header").value;
 						var submit_packet_body = document.getElementById("submit_packet_body").value;
+                        submit_packet_body = submit_packet_body.replace("{flag_content}", flag);
 						var headerList = submit_packet_header.split("\\n");
 						var finalPacket = "";
 						var isPost = (submit_packet_body.trim().length != 0);
