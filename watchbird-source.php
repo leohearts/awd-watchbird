@@ -1438,7 +1438,7 @@ HTML_CODE
 						<label class="mdui-col-xs-3 mdui-checkbox">
 							<input id="modifyHost" type="checkbox" checked/>
 							<i class="mdui-checkbox-icon"></i>
-							<small style="margin-left: 15px;" class="mdui-textfield-label">修改Host</small>
+							<small style="" class="mdui-textfield-label">修改Host</small>
 						</label>
 						
 						<label class="mdui-col-xs-1 mdui-checkbox">
@@ -1454,7 +1454,7 @@ HTML_CODE
 							<input id="use_custom_replayer" type="checkbox"/>
 							<i class="mdui-checkbox-icon"></i>
 						</label>
-						<div class="mdui-col-xs-4 mdui-textfield" style="padding: 0;margin-top: -10px;" title="使用存在本地web服务器的watchbird发包, 应对靶机间不能互联的情况. 使用方法: 将watchbird.php放在本地服务器的根目录, 或一个任意目录, 然后修改本地发包器的值. 本选项默认关闭, 将在检测到本地发包器存在时自动开启.">
+						<div class="mdui-col-xs-3 mdui-textfield" style="padding: 0;margin-top: -10px;" title="使用存在本地web服务器的watchbird发包, 应对靶机间不能互联的情况. 使用方法: 将watchbird.php放在本地服务器的根目录, 或一个任意目录, 然后修改本地发包器的值. 本选项默认关闭, 将在检测到本地发包器存在时自动开启.">
 							<label class="mdui-textfield-label">本地发包器</label>
 							<input id="replayer_addr" class="mdui-textfield-input" type="text" style="height: 30px;" value="http://127.0.0.1/watchbird.php"/>
 						</div>
