@@ -1005,7 +1005,12 @@ pre{
 							flag = escape(flag);
 						}
 						finalPacket = finalPacket.replace("{flag_content}", flag);
-						await fetch("?watchbird=replay&ip="+ipAddr+"&port="+port, {
+
+						var FinalFetchUrl = "?watchbird=replay&ip="+ipAddr+"&port="+port;
+						if (document.getElementById("use_custom_replayer").checked){
+							FinalFetchUrl = document.getElementById("replayer_addr").value + FinalFetchUrl;
+						}
+						await fetch(FinalFetchUrl, {
 							body: finalPacket,
 							method: 'POST',
 						}).then(function(response) {
@@ -1480,7 +1485,7 @@ HTML_CODE
 							<div class="mdui-panel-item-body">
 								<div class="mdui-textfield">
 									<label class="mdui-textfield-label">Flag正则</label>
-									<textarea id="flag_regex" class="mdui-textfield-input" type="text" >flag\\{[0-9, a-z]{12,64}\\}</textarea>
+									<textarea id="flag_regex" class="mdui-textfield-input" type="text" >flag\\{[0-9-_a-z]{12,64}\\}</textarea>
 								</div>
 								<div class="mdui-textfield">
 									<label class="mdui-textfield-label">提交给flag机的数据包, 用{flag_content}表示flag内容</label>
