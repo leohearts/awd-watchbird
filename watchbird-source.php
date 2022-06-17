@@ -915,7 +915,10 @@ pre{
 							try{
 								await checklog();
 							}
-							catch{continue;}
+							catch{
+								await sleep(1000);
+								continue;
+							}
 							await sleep(1000);
 						}
 					}
