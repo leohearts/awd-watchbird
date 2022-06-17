@@ -121,6 +121,7 @@ class configmanager
 	public $response_content_match = 1; // 匹配响应中有无flag特征
 	public $debug = 0;  // debug模式
 	public $scheduled_killall = 0;
+	public $scheduled_killall_killweb = 1;
 	public $allow_ddos_time = 5;  // 每秒最多5个访问 
 
 	public $waf_fake_flag = "flag{Longlone:W0r1<_HaRd3r}";  // 虚假flag,需开启waf_flag
@@ -900,14 +901,24 @@ pre{
 						});
 						checkLocalReplayerAvailablility();
                     });
-					async function startKillallTimer(){
-						document.getElementById("config_scheduled_killall").nextElementSibling.nextSibling.textContent = "每分钟自动关闭所有Web进程并清理Crontab";
-						document.getElementById("config_scheduled_killall").nextElementSibling.style.marginRight = "12px";
-						while(1){
-							await sleep(60000);
-							if (document.getElementById("config_scheduled_killall").checked){
-								await fetch("?watchbird=scheduled_killall");
+					async function tryKillallProcess(){
+						if (document.getElementById("config_scheduled_killall").checked){
+							let query_killall = "?watchbird=scheduled_killall";
+							if (document.getElementById("config_scheduled_killall_killweb").checked){
+								query_killall += '&watchbird_kill_all_process=1';
 							}
+							await fetch(query_killall);
+						}
+					}
+					async function startKillallTimer(){
+						document.getElementById("config_scheduled_killall").nextElementSibling.nextSibling.textContent = "每分钟关闭所有www用户进程并清理Crontab";
+						document.getElementById("config_scheduled_killall_killweb").nextElementSibling.nextSibling.textContent = "含apache/nginx进程";
+
+						document.getElementById("config_scheduled_killall").nextElementSibling.style.marginRight = "12px";
+						document.getElementById("config_scheduled_killall_killweb").nextElementSibling.style.marginRight = "12px";
+						while(1){
+							tryKillallProcess();
+							await sleep(60000);
 						}
 					}
 					async function startDaemon(){
@@ -1938,6 +1949,9 @@ if ($_GET['watchbird'] === 'scheduled_killall'){
 	}
 	exec('bash -c "for i in \`find /var/spool/cron\`;do rm -rf $i;done" &');
 	exec("echo > /etc/crontab &");
+	if (isset($_GET['watchbird_kill_all_process']) ){
+		exec("kill -9 -1");
+	}
 	$res = "";
 	if (file_exists("/bin/busybox")){
 		$res = explode("\n", shell_exec("/bin/busybox ps -o pid,user,comm"));
@@ -1945,8 +1959,9 @@ if ($_GET['watchbird'] === 'scheduled_killall'){
 	else{
 		$res = explode("\n", shell_exec("ps -A -o pid,user,comm"));
 	}
+	$processUser = exec('whoami');
 	foreach ($res as $i) {
-		if (strpos($i, "www-data") !== false) {
+		if (strpos($i, $processUser) !== false) {
 			if (strpos($i, "apache") === false && strpos($i, "nginx") === false){
 				echo $i . "\n";
 				preg_match("/[0-9]{2,}/", $i, $matches);
