@@ -799,11 +799,18 @@ SVG_RESOURCE;
 				<style>
 *{font-family: Arial, Helvetica, sans-serif;}
 textarea{font-family: monospace !important;}
-.logger .mdui-col {
-  margin: 20px 20px;
-  max-width: 45%;
-  min-width: 400px;
-  height: 45%;
+.logger {
+  padding: 20px 0px;
+  display: grid;
+  gap: 30px;
+  height: 100%;
+  grid-template-rows: repeat(4,1fr);
+}
+@media (min-width: 800px){
+  .logger {
+    grid-template-columns: repeat(2,1fr);
+    grid-template-rows: repeat(2,1fr);
+  }
 }
 .logcontainer .mdui-card{
   margin-top: 10px;
@@ -1404,7 +1411,7 @@ HTML_CODE
 		}
 		print('</div>');
 		print(<<<HTML_CODE
-		<div id="日志" class="mdui-container mdui-hidden doc-container mdui-row-xs-2 logger">
+		<div id="日志" class="mdui-container mdui-hidden doc-container logger">
 			<div id="flag_eye_to_eye" class="mdui-shadow-5 mdui-col mdui-hoverable ">
 				<p style="width: 60%;display: inline-flex;left: 20px;position: relative;">flag_eye_to_eye</p>
 				<label class="mdui-checkbox">
