@@ -43,7 +43,7 @@
 ## 构建
 
 - `git clone https://github.com/leohearts/awd-watchbird.git`
-- 使用 `pyhton3 pack.py` 将源码打包为单文件
+- 使用 `python3 pack.py` 将源码打包为单文件
 
 - 编译waf.c生成.so文件,参考命令:gcc waf.c -shared -o waf.so
 
