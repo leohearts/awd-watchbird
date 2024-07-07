@@ -1258,23 +1258,6 @@ pre{
 						await sleep(500);
 					}
 					async function addlog(doReplay, module, str, id){
-						if (module == 'flag_log' && timestampflag_log > 0){
-							await sendnoti('深度防御拦截了一次有效攻击', '查看flag_log以获取详细信息');
-						}
-						if (module == "under_attack_log"){
-							if (timestampunder_attack_log > 0){
-								await sendnoti('RCE防护拦截了一次有效攻击', '查看under_attack_log以获取详细信息');
-							}
-							var cpydiv = document.getElementById("web_log" + id).cloneNode(true);
-							cpydiv.id = module + id;
-							cpydiv.classList.remove("active");
-							cpydiv.querySelector("button").onclick = function () { handle_replay(); }
-							document.getElementById(module).getElementsByClassName("logcontainer")[0].prepend(cpydiv);
-							mdui.mutation();
-							await sleep(20);
-							cpydiv.classList.add("active");
-							return;
-						}
 						var newdivrow = document.createElement("div");
 						newdivrow.id = module+id;
 						newdivrow.classList.add("mdui-card")
@@ -1301,6 +1284,24 @@ pre{
 						mdui.mutation();
 						await sleep(20);
 						newdivrow.classList.add("active");
+
+						if (module == 'flag_log' && timestampflag_log > 0){
+							await sendnoti('深度防御拦截了一次有效攻击', '查看flag_log以获取详细信息');
+						}
+						if (module == "under_attack_log"){
+							if (timestampunder_attack_log > 0){
+								await sendnoti('RCE防护拦截了一次有效攻击', '查看under_attack_log以获取详细信息');
+							}
+							var cpydiv = document.getElementById("web_log" + id).cloneNode(true);
+							cpydiv.id = module + id;
+							cpydiv.classList.remove("active");
+							cpydiv.querySelector("button").onclick = function () { handle_replay(); }
+							document.getElementById(module).getElementsByClassName("logcontainer")[0].prepend(cpydiv);
+							mdui.mutation();
+							await sleep(20);
+							cpydiv.classList.add("active");
+							return;
+						}
 					}
 					var timestampflag_eye_to_eye = 0;
 					var timestampflag_log = 0;
